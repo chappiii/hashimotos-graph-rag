@@ -1,0 +1,6 @@
+__pycach__
+*.py[cod]
+*$py.class
+
+.env
+.env.local

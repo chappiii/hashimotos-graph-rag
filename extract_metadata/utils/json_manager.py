@@ -9,7 +9,7 @@ def save_metadata_to_json(pdf_filename: str, llm_response: str, part_number: Opt
     print(f"Saving JSON to folder: {OUTPUT_FOLDER}")
 
     output_dir = OUTPUT_FOLDER
-    os.makedirs(output_dir, exists_ok=True)
+    os.makedirs(output_dir, exist_ok=True)
 
     if part_number is not None:
         base_filename = OUTPUT_FILENAME.replace('.json', f'_part_{part_number}.json')
