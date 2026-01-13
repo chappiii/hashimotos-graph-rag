@@ -16,8 +16,8 @@ Extracts structured bibliographic metadata from PDF research papers using a two-
 ## Prerequisites
 
 - Python 3.8+
-- Ollama running locally with `qwen3:latest` model
-- Dependencies: `PyPDF2`, `requests`
+- Ollama running locally
+- Dependencies: `PyPDF2`, `requests`, `psutil`
 
 ## Usage
 
@@ -55,3 +55,28 @@ OLLAMA_URL = "http://127.0.0.1:11434/api/generate"
   ]
 }
 ```
+
+## Experiment Tracking
+
+The module includes experiment tracking for comparing different LLM models Runs.
+
+### Running Experiments
+
+1. Set model in `config/metadata_config.py`:
+
+2. Run: `python main.py`
+
+3. Results saved to:
+   ```
+   experiments/results/{model_name}/run_{timestamp}/
+   ├── metrics.json    # Timing + RAM per document
+   └── outputs.json    # Raw LLM responses
+   ```
+
+### Metrics Logged
+
+- Extraction time per document
+- Correction time per document
+- Total processing time
+- RAM usage (peak and per document)
+- Raw LLM outputs 
