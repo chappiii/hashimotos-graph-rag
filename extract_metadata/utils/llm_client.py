@@ -12,18 +12,21 @@ def make_llm_request(model: str, prompt: str) -> Optional[str]:
             "stream": False
         }
 
+        start = time.perf_counter()
         response = requests.post(OLLAMA_URL, json=payload,  timeout=API_TIMEOUT)
+        duration = time.perf_counter() - start
+
 
         if response.status_code == 200:
             result = response.json()
-            return result.get('response', '')
+            return result.get('response', ''), duration
         else:
             print(f"API Error: {response.status_code}")
-            return None
+            return None, 0
         
     except Exception as e:
         print(f"LLM Error: {str(e)}")
-        return None
+        return None, 0
     
 def extract_metadata_with_llm(prompt: str) -> Optional[str]:
     return make_llm_request(EXTRACTION_MODEL, prompt)

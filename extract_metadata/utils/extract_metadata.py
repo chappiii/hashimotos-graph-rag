@@ -1,15 +1,17 @@
 import os 
 import time
-from config.metadata_config import SLEEP_DURATION
-from config.metadata_config import PDFS
+from config.metadata_config import SLEEP_DURATION, PDFS, EXTRACTION_MODEL, EXPERIMENT_OUTPUT
 from utils.pdf_utils import get_pdf_files
+from experiments.metrics_logger import MetricsLogger
 from utils.json_manager import save_metadata_to_json
 from utils.first_page_extractor import extract_first_page
 from prompts.correction_prompt import get_correction_prompt
 from prompts.extraction_prompt import get_extraction_prompt
 from utils.llm_client import extract_metadata_with_llm, correct_response_with_llm
 
-def process_single_pdf(pdf_file: str, pdf_index: int, total_files: int, part_numbers: int):
+def process_single_pdf(pdf_file: str, pdf_index: int, total_files: int, part_numbers: int, logger):
+
+    logger.start_documents(pdf_file)
 
     pdf_path =  os.path.join(PDFS, pdf_file)
     print(f"=== PDF {pdf_index}/{total_files}: {pdf_file} (Part {part_numbers}) ===")
@@ -20,7 +22,8 @@ def process_single_pdf(pdf_file: str, pdf_index: int, total_files: int, part_num
         print("Sending to LLM...")
         extraction_prompt = get_extraction_prompt(first_page)
 
-        initial_response  =  extract_metadata_with_llm(extraction_prompt)
+        initial_response, extraction_duration  =  extract_metadata_with_llm(extraction_prompt)
+        logger.log_extraction(extraction_duration, initial_response)
 
         if initial_response:
             print("Initial LLM Response:")
@@ -30,7 +33,10 @@ def process_single_pdf(pdf_file: str, pdf_index: int, total_files: int, part_num
             
             print("Sending for correction...")
             correction_prompt = get_correction_prompt(initial_response)
-            corrected_response = correct_response_with_llm(correction_prompt)
+            corrected_response, correction_duration = correct_response_with_llm(correction_prompt)
+            logger.log_correction(correction_duration, corrected_response)
+
+            logger.end_document(success=True)
 
             if corrected_response:
                 print("Corrected LLM Response:")
@@ -48,15 +54,20 @@ def process_single_pdf(pdf_file: str, pdf_index: int, total_files: int, part_num
                 json_path = save_metadata_to_json(pdf_file, initial_response, part_numbers)
                 return True
         else:
+            logger.end_document(success=False)
             print("LLM processing failed.")
             return False
     else:
+        logger.end_document(success=False)
         print("PDF Reading Error, LLM processing skipped")
         return False
     
 def process_pdfs():
     print("PDF Metadata Extractor (Batch Processing)")
     print("=" * 50)
+
+    logger = MetricsLogger(EXTRACTION_MODEL)
+    logger.start_run()
 
     pdf_files = get_pdf_files(PDFS)
     if not pdf_files:
@@ -82,7 +93,7 @@ def process_pdfs():
 
         for i, pdf_file in enumerate(batch_files):
             global_index = start_idx + i + 1
-            success = process_single_pdf(pdf_file, global_index, total_files, part_number)
+            success = process_single_pdf(pdf_file, global_index, total_files, part_number, logger)
 
             if not success:
                 print(f"PDF {pdf_file} could not be processed completely")
@@ -93,4 +104,5 @@ def process_pdfs():
             print("Waiting 5 seconds before next part...")
             time.sleep(5)
     
+    logger.save(EXPERIMENT_OUTPUT)
     print(f"\n Complete: All {total_files} PDFs processed in {total_batches} parts!")

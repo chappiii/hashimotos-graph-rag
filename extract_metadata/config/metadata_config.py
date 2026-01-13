@@ -10,14 +10,16 @@ METADATA_TEMPLATE = {
 }
 
 OLLAMA_URL  = "http://127.0.0.1:11434/api/generate"
-PDFS = "./pdfs"
+PDFS = "./p"
 OUTPUT_FOLDER = "./extracted_metadata"
+EXPERIMENT_OUTPUT = "./experiments/results"
 
 API_TIMEOUT = 1000
 SLEEP_DURATION = 5
 
 EXTRACTION_MODEL = "llama3.1:latest"
 CORRECTION_MODEL = "llama3.1:latest"
+
 
 def get_output_filename():
     model_name = EXTRACTION_MODEL.replace(":", "").replace("/", "_")
