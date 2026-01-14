@@ -5,14 +5,21 @@ from datetime import datetime
 import psutil
 
 class MetricsLogger:
-    def __init__(self, model_name, run_id=None):
+    def __init__(self, model_name, output_dir, run_id=None):
         self.model_name = model_name
         self.run_id = run_id or datetime.now().strftime("%Y%m%d_%H%M%S")
-        self.documents = []
-        self.current_doc  = None
+        self.current_doc = None
         self.run_start = None
         self.peak_ram_mb = 0
+        self.doc_count = 0
         
+        # Create run directory immediately
+        self.run_dir = os.path.join(output_dir, self.model_name.replace(":", "_"), f"run_{self.run_id}")
+        os.makedirs(self.run_dir, exist_ok=True)
+        
+        # Initialize files
+        self.metrics_path = os.path.join(self.run_dir, "metrics.json")
+        self.outputs_path = os.path.join(self.run_dir, "outputs.json")
         
     def start_run(self):
         self.run_start = time.perf_counter()
@@ -43,34 +50,66 @@ class MetricsLogger:
         self.current_doc["success"] = success
         self.peak_ram_mb = max(self.peak_ram_mb, self.current_doc["ram_mb"])
         del self.current_doc["start_time"]
-        self.documents.append(self.current_doc)
+        
+        # Save immediately to disk
+        self._append_to_outputs()
+        self._append_to_metrics()
+        
+        self.doc_count += 1
         self.current_doc = None
 
-    def save(self, output_dir):
-        run_dir = os.path.join(output_dir, self.model_name.replace(":", "_"), f"run_{self.run_id}")
-        os.makedirs(run_dir, exist_ok=True)
-
-        # Save metrics
-        metrics = {
-            "model": self.model_name,
-            "run_id": self.run_id,
-            "total_documents": len(self.documents),
-            "total_time_s": time.perf_counter() - self.run_start,
-            "peak_ram_mb": self.peak_ram_mb,
-            "documents": [{k: v for k, v in d.items() if not k.endswith("_raw")} for d in self.documents]
+    def _append_to_outputs(self):
+        """Append current doc's raw outputs to outputs.json"""
+        output_entry = {
+            "paper_id": self.current_doc["paper_id"],
+            "extraction_raw": self.current_doc["extraction_raw"],
+            "correction_raw": self.current_doc["correction_raw"]
         }
-        with open(os.path.join(run_dir, "metrics.json"), "w") as f:
-            json.dump(metrics, f, indent=2)
+        
+        # Load existing or create new
+        if os.path.exists(self.outputs_path):
+            with open(self.outputs_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+        else:
+            data = {"documents": []}
+        
+        data["documents"].append(output_entry)
+        
+        with open(self.outputs_path, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
 
-        # Save raw outputs
-        outputs = {
-            "documents": [{
-                "paper_id": d["paper_id"],
-                "extraction_raw": d["extraction_raw"],
-                "correction_raw": d["correction_raw"]
-            } for d in self.documents]
-        }
-        with open(os.path.join(run_dir, "outputs.json"), "w") as f:
-            json.dump(outputs, f, indent=2, ensure_ascii=False)
+    def _append_to_metrics(self):
+        """Append current doc's metrics to metrics.json"""
+        metric_entry = {k: v for k, v in self.current_doc.items() if not k.endswith("_raw")}
+        
+        # Load existing or create new
+        if os.path.exists(self.metrics_path):
+            with open(self.metrics_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+        else:
+            data = {
+                "model": self.model_name,
+                "run_id": self.run_id,
+                "total_documents": 0,
+                "total_time_s": 0,
+                "peak_ram_mb": 0,
+                "documents": []
+            }
+        
+        data["documents"].append(metric_entry)
+        data["total_documents"] = len(data["documents"])
+        data["total_time_s"] = time.perf_counter() - self.run_start
+        data["peak_ram_mb"] = self.peak_ram_mb
+        
+        with open(self.metrics_path, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2)
 
-        return run_dir
+    def save(self):
+        """Final save - just updates totals (data already saved incrementally)"""
+        if os.path.exists(self.metrics_path):
+            with open(self.metrics_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            data["total_time_s"] = time.perf_counter() - self.run_start
+            with open(self.metrics_path, "w", encoding="utf-8") as f:
+                json.dump(data, f, indent=2)
+        return self.run_dir

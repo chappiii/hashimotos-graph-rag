@@ -66,7 +66,7 @@ def process_pdfs():
     print("PDF Metadata Extractor (Batch Processing)")
     print("=" * 50)
 
-    logger = MetricsLogger(EXTRACTION_MODEL)
+    logger = MetricsLogger(EXTRACTION_MODEL, EXPERIMENT_OUTPUT)
     logger.start_run()
 
     # Create run directory for extracted metadata
@@ -110,5 +110,5 @@ def process_pdfs():
             print("Waiting 5 seconds before next part...")
             time.sleep(5)
     
-    logger.save(EXPERIMENT_OUTPUT)
+    logger.save()
     print(f"\n Complete: All {total_files} PDFs processed in {total_batches} parts!")
