@@ -1,6 +1,6 @@
 import os 
 import time
-from config.metadata_config import SLEEP_DURATION, PDFS, EXTRACTION_MODEL, EXPERIMENT_OUTPUT
+from config.metadata_config import SLEEP_DURATION, PDFS, EXTRACTION_MODEL, EXPERIMENT_OUTPUT, CORRECTION_MODEL, OUTPUT_FOLDER
 from utils.pdf_utils import get_pdf_files
 from experiments.metrics_logger import MetricsLogger
 from utils.json_manager import save_metadata_to_json
@@ -9,9 +9,9 @@ from prompts.correction_prompt import get_correction_prompt
 from prompts.extraction_prompt import get_extraction_prompt
 from utils.llm_client import extract_metadata_with_llm, correct_response_with_llm
 
-def process_single_pdf(pdf_file: str, pdf_index: int, total_files: int, part_numbers: int, logger):
+def process_single_pdf(pdf_file: str, pdf_index: int, total_files: int, part_numbers: int, logger, run_dir: str):
 
-    logger.start_documents(pdf_file)
+    logger.start_documents(pdf_file.replace(".pdf", ""))
 
     pdf_path =  os.path.join(PDFS, pdf_file)
     print(f"=== PDF {pdf_index}/{total_files}: {pdf_file} (Part {part_numbers}) ===")
@@ -44,14 +44,14 @@ def process_single_pdf(pdf_file: str, pdf_index: int, total_files: int, part_num
                 print(corrected_response)
                 print("-" * 50)
 
-                json_path = save_metadata_to_json(pdf_file, corrected_response, part_numbers)
+                json_path = save_metadata_to_json(pdf_file, corrected_response, part_numbers, run_dir)
                 if json_path is None:
                     print("JSON could not be saved, LLM response should be checked.")
                 time.sleep(SLEEP_DURATION)
                 return True
             else:
                 print("Correction failed, using original response...")
-                json_path = save_metadata_to_json(pdf_file, initial_response, part_numbers)
+                json_path = save_metadata_to_json(pdf_file, initial_response, part_numbers, run_dir)
                 return True
         else:
             logger.end_document(success=False)
@@ -68,6 +68,12 @@ def process_pdfs():
 
     logger = MetricsLogger(EXTRACTION_MODEL)
     logger.start_run()
+
+    # Create run directory for extracted metadata
+    extraction_name = EXTRACTION_MODEL.split(":")[0]
+    correction_name = CORRECTION_MODEL.split(":")[0]
+    run_dir = os.path.join(OUTPUT_FOLDER, f"{extraction_name}_{correction_name}", f"run_{logger.run_id}")
+    os.makedirs(run_dir, exist_ok=True)
 
     pdf_files = get_pdf_files(PDFS)
     if not pdf_files:
@@ -93,7 +99,7 @@ def process_pdfs():
 
         for i, pdf_file in enumerate(batch_files):
             global_index = start_idx + i + 1
-            success = process_single_pdf(pdf_file, global_index, total_files, part_number, logger)
+            success = process_single_pdf(pdf_file, global_index, total_files, part_number, logger, run_dir)
 
             if not success:
                 print(f"PDF {pdf_file} could not be processed completely")

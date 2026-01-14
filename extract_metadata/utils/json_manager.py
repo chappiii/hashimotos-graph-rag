@@ -5,11 +5,17 @@ from typing import Optional
 from config.metadata_config import METADATA_TEMPLATE, OUTPUT_FOLDER, OUTPUT_FILENAME
 from utils.llm_parser import parse_llm_output
 
-def save_metadata_to_json(pdf_filename: str, llm_response: str, part_number: Optional[int] = None) -> Optional[str]:
-    print(f"Saving JSON to folder: {OUTPUT_FOLDER}")
+def save_metadata_to_json(pdf_filename: str, llm_response: str, part_number: Optional[int] = None, run_dir: str = None) -> Optional[str]:
 
     output_dir = OUTPUT_FOLDER
     os.makedirs(output_dir, exist_ok=True)
+
+    if run_dir:
+        output_dir = run_dir
+    else:
+        output_dir = OUTPUT_FOLDER
+
+    print(f"Saving JSON to folder: {output_dir}")
 
     if part_number is not None:
         base_filename = OUTPUT_FILENAME.replace('.json', f'_part_{part_number}.json')
