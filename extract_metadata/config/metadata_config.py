@@ -16,9 +16,13 @@ EXPERIMENT_OUTPUT = "./experiments/results"
 
 API_TIMEOUT = 1000
 SLEEP_DURATION = 5
+MAX_WORKERS = 2
 
-EXTRACTION_MODEL = "qwen3:latest"
+EXTRACTION_MODEL = "deepseek-r1:latest"
+# EXTRACTION_MODEL = "mistral:7b"
+# EXTRACTION_MODEL = "qwen3:latest"
 # EXTRACTION_MODEL = "llama3.1:latest"
+
 CORRECTION_MODEL = "llama3.1:latest"
 
 
