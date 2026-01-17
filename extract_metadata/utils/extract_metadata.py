@@ -14,7 +14,7 @@ import threading
 _print_lock = threading.Lock()
 
 def safe_print(message):
-    # print with thread saftey
+    # print with thread safety
     with _print_lock:
         print(message)
 
