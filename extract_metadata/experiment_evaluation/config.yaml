@@ -1,0 +1,121 @@
+scoring_rules:
+
+  doi:
+    rule: "exact_match"
+    normalization: true
+    case_sensitive: false
+
+  title:
+    rule: "fuzzy_match"
+    normalization: true
+    case_sensitive: false
+
+  published_year:
+    rule: "exact_match"
+    allow_string_int_match: true
+
+  authors:
+    rule: "threshold"
+    threshold: 0.7
+    compare_by: "last_name"
+    ignore_titles: true
+  
+  countries:
+    rule: "all_required"
+    extra_allowed: true
+    normalize: true
+  
+  purpose_of_work:
+    rule: "semantic_overlap
+    threshold: 0.4
+    remove_stopwords: true
+  
+  keywords:
+    rule: "all_required"
+    extra_allowed: true
+    case_sensitive: false
+    handle_empty_gt: "score_zero_if_detected"
+
+
+country_normalization:
+  "uk": "united kingdom"
+  "u.k.": "united kingdom"
+  "united kingdom": "united kingdom"
+  "england": "united kingdom"
+  
+  "usa": "united states"
+  "u.s.a.": "united states"
+  "u.s.": "united states"
+  "united states": "united states"
+  "united states of america": "united states"
+  
+  "roc": "taiwan"
+  "taiwan": "taiwan"
+  "republic of china": "taiwan"
+  
+  "republic of korea": "south korea"
+  "south korea": "south korea"
+  "korea": "south korea"
+  
+  "türkiye": "turkey"
+  "turkey": "turkey"
+  
+  "ksa": "saudi arabia"
+  "saudi arabia": "saudi arabia"
+  
+  "people's republic of china": "china"
+  "prc": "china"
+  "china": "china"
+  
+  "uae": "united arab emirates"
+  "united arab emirates": "united arab emirates"
+
+
+stopwords:
+  - "the"
+  - "a"
+  - "an"
+  - "to"
+  - "of"
+  - "in"
+  - "and"
+  - "is"
+  - "are"
+  - "this"
+  - "for"
+  - "with"
+  - "on"
+  - "was"
+  - "were"
+  - "its"
+  - "by"
+  - "as"
+  - "or"
+  - "be"
+  - "that"
+  - "from"
+  - "at"
+  - "which"
+  - "has"
+  - "have"
+  - "been"
+  - "their"
+  - "we"
+  - "our"
+
+output:
+  excel:
+    color_code_scores: true
+    score_1_color: "CCFFCC"
+    score_0_color: "FFCCCC"
+    header_color: "4472C4"
+    include_summary_sheet: true
+  
+  descriptions:
+    max_missing_keywords: 3
+    max_missing_countries: 3
+    max_missing_authors: 3
+
+batch:
+  generate_comparison_summary: true
+  comparison_filename: "comparison_summary.xlsx"
