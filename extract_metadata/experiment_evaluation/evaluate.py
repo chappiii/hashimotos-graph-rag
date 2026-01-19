@@ -81,7 +81,7 @@ def normalize_keyword(keyword: Optional[str], config: dict) -> Optional[str]:
     kw = str(keyword).strip()
     
     # Normalize quotes
-    kw = re.sub(r'[''`]', "'", kw)
+    kw = re.sub(r'[''`’?]', "'", kw)
     kw = re.sub(r'[""]', '"', kw)
     
     if not config['scoring_rules']['keywords']['case_sensitive']:
@@ -101,7 +101,7 @@ def normalize_title(title: Optional[str], config: dict) -> Optional[str]:
         # Normalize whitespace
         t = re.sub(r'\s+', ' ', t)
         # Remove special quote variations
-        t = re.sub(r'[''`""]', '', t)
+        t = re.sub(r'[''`""’]', '', t)
         # Remove punctuation for comparison
         t = re.sub(r'[^\w\s]', '', t)
     
@@ -467,9 +467,30 @@ def evaluate_experiment(gt_papers: Dict[str, dict], exp_papers: Dict[str, dict],
     """Evaluate all papers in an experiment."""
     results = []
     
+    fields = ['DOI', 'Title', 'Published year', 'Authors', 'Countries', 'Purpose of work', 'keywords']
+    
     for paper_id in sorted(gt_papers.keys(), key=lambda x: int(x)):
         gt = gt_papers[paper_id]
-        exp = exp_papers.get(paper_id, {})
+        exp = exp_papers.get(paper_id)
+        
+        # Handle missing papers - score all fields as 0
+        if exp is None:
+            print(f"WARNING: Paper {paper_id} missing from experiment results - scoring all fields as 0")
+            row = {
+                'ID': int(paper_id),
+                'DOI': 0, 'Title': 0, 'Published year': 0, 'Authors': 0,
+                'Countries': 0, 'Purpose of work': 0, 'keywords': 0,
+                'Correct /7': 0, 'Wrong': 7, 'Accuracy(%)': 0.0,
+                'Precision(%)': 0.0, 'Recall(%)': 0.0, 'F1(%)': 0.0,
+                'description of failed extractions': 'Paper not found in experiment results',
+                '_tp': 0, '_fp': 0, '_fn': 7
+            }
+            for field in fields:
+                row[f'_{field}_tp'] = 0
+                row[f'_{field}_fp'] = 0
+                row[f'_{field}_fn'] = 1
+            results.append(row)
+            continue
         
         row = {'ID': int(paper_id)}
         row.update(evaluate_paper(gt, exp, config))
