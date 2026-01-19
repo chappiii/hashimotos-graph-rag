@@ -2,12 +2,12 @@ scoring_rules:
 
   doi:
     rule: "exact_match"
-    normalization: true
+    normalize: true
     case_sensitive: false
 
   title:
     rule: "fuzzy_match"
-    normalization: true
+    normalize_encoding: true
     case_sensitive: false
 
   published_year:
@@ -26,7 +26,7 @@ scoring_rules:
     normalize: true
   
   purpose_of_work:
-    rule: "semantic_overlap
+    rule: "semantic_overlap"
     threshold: 0.4
     remove_stopwords: true
   
@@ -115,7 +115,3 @@ output:
     max_missing_keywords: 3
     max_missing_countries: 3
     max_missing_authors: 3
-
-batch:
-  generate_comparison_summary: true
-  comparison_filename: "comparison_summary.xlsx"
