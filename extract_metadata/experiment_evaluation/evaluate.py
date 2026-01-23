@@ -1,14 +1,15 @@
 import json
-import os
 import re
 import argparse
 from pathlib import Path
-from typing import Dict, List, Set, Any, Optional, Tuple
-from dataclasses import dataclass, field
+from typing import Dict, List, Optional
+from dataclasses import dataclass
 
 import yaml
+import unicodedata
 import pandas as pd
 from openpyxl import Workbook
+from difflib import SequenceMatcher
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 
 
@@ -81,6 +82,7 @@ def normalize_keyword(keyword: Optional[str], config: dict) -> Optional[str]:
     kw = str(keyword).strip()
     
     # Normalize quotes
+    # kw = re.sub(r'[''`’?]', "", kw)
     kw = re.sub(r'[''`’?]', "'", kw)
     kw = re.sub(r'[""]', '"', kw)
     
@@ -101,7 +103,7 @@ def normalize_title(title: Optional[str], config: dict) -> Optional[str]:
         # Normalize whitespace
         t = re.sub(r'\s+', ' ', t)
         # Remove special quote variations
-        t = re.sub(r'[''`""’]', '', t)
+        t = re.sub(r'[''`""’?]', '', t)
         # Remove punctuation for comparison
         t = re.sub(r'[^\w\s]', '', t)
     
@@ -111,8 +113,8 @@ def normalize_title(title: Optional[str], config: dict) -> Optional[str]:
     return t if t else None
 
 
-def get_author_lastname(name: str, config: dict) -> str:
-    """Extract last name from author name."""
+def normalize_author_name(name: str, config: dict) -> str:
+    """Normalize full author name for comparison."""
     name = str(name)
     
     if config['scoring_rules']['authors']['ignore_titles']:
@@ -121,10 +123,20 @@ def get_author_lastname(name: str, config: dict) -> str:
         name = re.sub(titles, '', name, flags=re.I)
     
     # Remove numbers and special markers
-    name = re.sub(r'[,\d*†]', '', name)
+    name = re.sub(r'[\d*†,]', '', name)
     
-    parts = name.strip().split()
-    return parts[-1].lower() if parts else ''
+    # Unicode normalization: é -> e
+    name = unicodedata.normalize('NFKD', name)
+    name = ''.join(c for c in name if not unicodedata.combining(c))
+    
+    # Normalize whitespace and hyphens
+    name = name.replace('-', ' ')
+    name = re.sub(r'\s+', ' ', name)
+    
+    # Lowercase and strip
+    name = name.lower().strip()
+    
+    return name
 
 
 # =============================================================================
@@ -159,8 +171,8 @@ def score_doi(gt_val: Optional[str], exp_val: Optional[str], config: dict) -> Fi
         # True Positive - correct extraction
         return FieldResult(score=1, tp=1, fp=0, fn=0)
     else:
-        # False Negative - wrong extraction (GT exists but not matched)
-        return FieldResult(score=0, explanation="DOI mismatch", tp=0, fp=0, fn=1)
+        # Wrong extraction - both missed correct (FN) AND hallucinated wrong (FP)
+        return FieldResult(score=0, explanation="DOI mismatch", tp=0, fp=1, fn=1)
 
 
 def score_title(gt_val: Optional[str], exp_val: Optional[str], config: dict) -> FieldResult:
@@ -177,7 +189,7 @@ def score_title(gt_val: Optional[str], exp_val: Optional[str], config: dict) -> 
     if gt_norm == exp_norm or gt_norm in exp_norm or exp_norm in gt_norm:
         return FieldResult(score=1, tp=1, fp=0, fn=0)
     else:
-        return FieldResult(score=0, explanation="Title mismatch", tp=0, fp=0, fn=1)
+        return FieldResult(score=0, explanation="Title mismatch", tp=0, fp=1, fn=1)
 
 
 def score_year(gt_val, exp_val, config: dict) -> FieldResult:
@@ -192,12 +204,12 @@ def score_year(gt_val, exp_val, config: dict) -> FieldResult:
         if int(gt_val) == int(exp_val):
             return FieldResult(score=1, tp=1, fp=0, fn=0)
         else:
-            return FieldResult(score=0, explanation=f"Year mismatch: GT={gt_val}, Exp={exp_val}", tp=0, fp=0, fn=1)
+            return FieldResult(score=0, explanation=f"Year mismatch: GT={gt_val}, Exp={exp_val}", tp=0, fp=1, fn=1)
     except (ValueError, TypeError):
         if str(gt_val) == str(exp_val):
             return FieldResult(score=1, tp=1, fp=0, fn=0)
         else:
-            return FieldResult(score=0, explanation=f"Year mismatch: GT={gt_val}, Exp={exp_val}", tp=0, fp=0, fn=1)
+            return FieldResult(score=0, explanation=f"Year mismatch: GT={gt_val}, Exp={exp_val}", tp=0, fp=1, fn=1)
 
 
 def score_authors(gt_list: List[str], exp_list: List[str], config: dict) -> FieldResult:
@@ -211,29 +223,74 @@ def score_authors(gt_list: List[str], exp_list: List[str], config: dict) -> Fiel
     elif not exp_list:
         return FieldResult(score=0, explanation="Authors not detected", tp=0, fp=0, fn=1)
     
-    gt_lastnames = set([get_author_lastname(a, config) for a in gt_list])
-    exp_lastnames = set([get_author_lastname(a, config) for a in exp_list])
+    # Normalize all names
+    gt_names = [normalize_author_name(a, config) for a in gt_list]
+    exp_names = [normalize_author_name(a, config) for a in exp_list]
     
-    gt_lastnames = {n for n in gt_lastnames if n}
-    exp_lastnames = {n for n in exp_lastnames if n}
+    # Filter empty names
+    gt_names = [n for n in gt_names if n]
+    exp_names = [n for n in exp_names if n]
     
-    if not gt_lastnames:
+    if not gt_names:
         return FieldResult(score=1, tp=0, fp=0, fn=0)
     
-    overlap = len(gt_lastnames & exp_lastnames) / len(gt_lastnames)
-    threshold = config['scoring_rules']['authors']['threshold']
+    # === STEP 1: Strict count check ===
+    if len(gt_names) != len(exp_names):
+        return FieldResult(
+            score=0,
+            explanation=f"Authors: count mismatch (GT={len(gt_names)}, Exp={len(exp_names)})",
+            tp=0, fp=1, fn=1
+        )
+    
+    # === STEP 2: Fuzzy matching (only for unicode tolerance) ===
+    fuzzy_threshold = config['scoring_rules']['authors'].get('fuzzy_threshold', 0.90)
+    
+    matched_count = 0
+    unmatched = []
+    exp_used = [False] * len(exp_names)  # Track which Exp names are already matched
+    
+    for gt_name in gt_names:
+        found = False
+        best_match_idx = -1
+        best_match_score = 0
+        
+        for idx, exp_name in enumerate(exp_names):
+            if exp_used[idx]:
+                continue
+            
+            # Exact match
+            if gt_name == exp_name:
+                found = True
+                best_match_idx = idx
+                break
+            
+            # Fuzzy match
+            similarity = SequenceMatcher(None, gt_name, exp_name).ratio()
+            if similarity >= fuzzy_threshold and similarity > best_match_score:
+                best_match_score = similarity
+                best_match_idx = idx
+                found = True
+        
+        if found and best_match_idx >= 0:
+            matched_count += 1
+            exp_used[best_match_idx] = True  # Mark as used
+        else:
+            unmatched.append(gt_name)
+    
+    # === STEP 3: Threshold check ===
+    overlap = matched_count / len(gt_names)
+    threshold = config['scoring_rules']['authors'].get('threshold', 0.7)
     
     if overlap >= threshold:
         return FieldResult(score=1, tp=1, fp=0, fn=0)
     else:
-        missing = gt_lastnames - exp_lastnames
         max_display = config['output']['descriptions']['max_missing_authors']
-        missing_display = list(missing)[:max_display]
-        if len(missing) > max_display:
-            explanation = f"Authors: {overlap*100:.0f}% match, missing: {missing_display}..."
+        missing_display = unmatched[:max_display]
+        if len(unmatched) > max_display:
+            explanation = f"Authors: {overlap*100:.0f}% match ({matched_count}/{len(gt_names)}), unmatched: {missing_display}..."
         else:
-            explanation = f"Authors: {overlap*100:.0f}% match, missing: {missing_display}"
-        return FieldResult(score=0, explanation=explanation, tp=0, fp=0, fn=1)
+            explanation = f"Authors: {overlap*100:.0f}% match ({matched_count}/{len(gt_names)}), unmatched: {missing_display}"
+        return FieldResult(score=0, explanation=explanation, tp=0, fp=1, fn=1)
 
 
 def score_countries(gt_list: List[str], exp_list: List[str], config: dict) -> FieldResult:
@@ -248,19 +305,22 @@ def score_countries(gt_list: List[str], exp_list: List[str], config: dict) -> Fi
             return FieldResult(score=1, tp=0, fp=0, fn=0)  
         return FieldResult(score=1, tp=0, fp=0, fn=0)
     
-    missing = gt_norm - exp_norm
+    matched = gt_norm & exp_norm
+    match_ratio = len(matched) / len(gt_norm)
     
-    if not missing:
+    threshold = config['scoring_rules']['countries'].get('threshold', 0.75)
+    
+    if match_ratio >= threshold:
         return FieldResult(score=1, tp=1, fp=0, fn=0)
     else:
+        missing = gt_norm - exp_norm
         max_display = config['output']['descriptions']['max_missing_countries']
         missing_display = list(missing)[:max_display]
         if len(missing) > max_display:
-            explanation = f"Countries: missing {missing_display}..."
+            explanation = f"Countries: {match_ratio*100:.0f}% match ({len(matched)}/{len(gt_norm)}), missing: {', '.join(missing_display)}..."
         else:
-            explanation = f"Countries: missing {missing_display}"
-        return FieldResult(score=0, explanation=explanation, tp=0, fp=0, fn=1)
-
+            explanation = f"Countries: {match_ratio*100:.0f}% match ({len(matched)}/{len(gt_norm)}), missing: {missing_display}"
+        return FieldResult(score=0, explanation=explanation, tp=0, fp=1, fn=1)
 
 def score_purpose(gt_val: Optional[str], exp_val: Optional[str], config: dict) -> FieldResult:
     if gt_val is None and exp_val is None:
@@ -284,7 +344,7 @@ def score_purpose(gt_val: Optional[str], exp_val: Optional[str], config: dict) -
     if overlap >= threshold:
         return FieldResult(score=1, tp=1, fp=0, fn=0)
     else:
-        return FieldResult(score=0, explanation=f"Purpose: {overlap*100:.0f}% semantic overlap", tp=0, fp=0, fn=1)
+        return FieldResult(score=0, explanation=f"Purpose: {overlap*100:.0f}% semantic overlap", tp=0, fp=1, fn=1)
 
 
 def score_keywords(gt_list: List[str], exp_list: List[str], config: dict) -> FieldResult:
@@ -310,19 +370,22 @@ def score_keywords(gt_list: List[str], exp_list: List[str], config: dict) -> Fie
             return FieldResult(score=0, explanation=f"Keywords: GT empty but detected {len(exp_norm)}", tp=0, fp=1, fn=0)
         return FieldResult(score=1, tp=0, fp=0, fn=0)
     
-    missing = gt_norm - exp_norm
+    matched = gt_norm & exp_norm
+    match_ratio = len(matched) / len(gt_norm)
     
-    if not missing:
+    threshold = config['scoring_rules']['keywords'].get('threshold', 0.5)
+    
+    if match_ratio >= threshold:
         return FieldResult(score=1, tp=1, fp=0, fn=0)
     else:
+        missing = gt_norm - exp_norm
         max_display = config['output']['descriptions']['max_missing_keywords']
         missing_display = list(missing)[:max_display]
         if len(missing) > max_display:
-            explanation = f"Keywords: missing {len(missing)} ({', '.join(missing_display)}...)"
+            explanation = f"Keywords: {match_ratio*100:.0f}% match ({len(matched)}/{len(gt_norm)}), missing: {', '.join(missing_display)}..."
         else:
-            explanation = f"Keywords: missing {missing_display}"
-        return FieldResult(score=0, explanation=explanation, tp=0, fp=0, fn=1)
-
+            explanation = f"Keywords: {match_ratio*100:.0f}% match ({len(matched)}/{len(gt_norm)}), missing: {missing_display}"
+        return FieldResult(score=0, explanation=explanation, tp=0, fp=1, fn=1)
 
 # =============================================================================
 # MAIN EVALUATION FUNCTION
