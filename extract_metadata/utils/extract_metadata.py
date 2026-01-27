@@ -1,6 +1,6 @@
-import os 
+import os
 import time
-from config.metadata_config import SLEEP_DURATION, PDFS, EXTRACTION_MODEL, EXPERIMENT_OUTPUT, CORRECTION_MODEL, OUTPUT_FOLDER
+from config.metadata_config import SLEEP_DURATION, PDFS, EXTRACTION_MODEL, EXPERIMENT_OUTPUT, CORRECTION_MODEL, OUTPUT_FOLDER, BATCH_SIZE
 from utils.pdf_utils import get_pdf_files
 from experiments.metrics_logger import MetricsLogger
 from utils.json_manager import save_metadata_to_json
@@ -13,16 +13,16 @@ def process_single_pdf(pdf_file: str, pdf_index: int, total_files: int, part_num
 
     logger.start_documents(pdf_file.replace(".pdf", ""))
 
-    pdf_path =  os.path.join(PDFS, pdf_file)
+    pdf_path = os.path.join(PDFS, pdf_file)
     print(f"=== PDF {pdf_index}/{total_files}: {pdf_file} (Part {part_numbers}) ===")
 
-    first_page  = extract_first_page(pdf_path)
+    first_page = extract_first_page(pdf_path)
 
-    if first_page and "Error:" not in first_page:
+    if first_page:
         print("Sending to LLM...")
         extraction_prompt = get_extraction_prompt(first_page)
 
-        initial_response, extraction_duration  =  extract_metadata_with_llm(extraction_prompt)
+        initial_response, extraction_duration = extract_metadata_with_llm(extraction_prompt)
         logger.log_extraction(extraction_duration, initial_response)
 
         if initial_response:
@@ -80,18 +80,17 @@ def process_pdfs():
         return
     
     total_files = len(pdf_files)
-    batch_size = 10
-    total_batches = (total_files + batch_size - 1) // batch_size
+    total_batches = (total_files + BATCH_SIZE - 1) // BATCH_SIZE
     
     print(f"{total_files} PDF files found.")
-    print(f"Batch size: {batch_size} PDFs per part")
+    print(f"Batch size: {BATCH_SIZE} PDFs per part")
     print(f"Total parts: {total_batches}")
     print(f"Processing order: {', '.join(pdf_files[:5])}{'...' if total_files > 5 else ''}\n")
 
     for batch_number in range(total_batches):
-        part_number = batch_number  + 1
-        start_idx = batch_number * batch_size
-        end_idx = min(start_idx + batch_size, total_files)
+        part_number = batch_number + 1
+        start_idx = batch_number * BATCH_SIZE
+        end_idx = min(start_idx + BATCH_SIZE, total_files)
         batch_files = pdf_files[start_idx:end_idx]
 
         print(f"\n PART {part_number}/{total_batches} - Processing PDFs {start_idx + 1}-{end_idx}")

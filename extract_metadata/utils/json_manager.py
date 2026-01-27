@@ -1,19 +1,15 @@
-import os 
+import os
+import copy
 import json
-from pathlib import Path 
+from pathlib import Path
 from typing import Optional
 from config.metadata_config import METADATA_TEMPLATE, OUTPUT_FOLDER, OUTPUT_FILENAME
 from utils.llm_parser import parse_llm_output
 
 def save_metadata_to_json(pdf_filename: str, llm_response: str, part_number: Optional[int] = None, run_dir: str = None) -> Optional[str]:
 
-    output_dir = OUTPUT_FOLDER
+    output_dir = run_dir or OUTPUT_FOLDER
     os.makedirs(output_dir, exist_ok=True)
-
-    if run_dir:
-        output_dir = run_dir
-    else:
-        output_dir = OUTPUT_FOLDER
 
     print(f"Saving JSON to folder: {output_dir}")
 
@@ -24,7 +20,7 @@ def save_metadata_to_json(pdf_filename: str, llm_response: str, part_number: Opt
 
     json_path = Path(output_dir) / base_filename
 
-    metadata = METADATA_TEMPLATE.copy()
+    metadata = copy.deepcopy(METADATA_TEMPLATE)
     metadata["paper_id"] = Path(pdf_filename).stem
 
     parsed = parse_llm_output(llm_response)

@@ -1,6 +1,7 @@
 import PyPDF2
+from typing import Optional
 
-def extract_first_page(pdf_path):
+def extract_first_page(pdf_path: str) -> Optional[str]:
     try:
         with open(pdf_path, 'rb') as file:
             pdf_reader = PyPDF2.PdfReader(file)
@@ -9,8 +10,10 @@ def extract_first_page(pdf_path):
                 first_page = pdf_reader.pages[0]
                 text = first_page.extract_text()
                 return text
-            else: 
-                return "PDF empty - no pages"
+            else:
+                print(f"PDF empty - no pages: {pdf_path}")
+                return None
             
     except Exception as e:
-        return f"Error: {str(e)}"
+        print(f"PDF read error ({pdf_path}): {e}")
+        return None

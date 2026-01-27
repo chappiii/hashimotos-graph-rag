@@ -4,7 +4,7 @@ from typing import Optional
 
 def parse_llm_output(raw: str) -> Optional[dict]:
     try:
-        raw = re.sub(r"<thinking>.*? </thinking>", "", raw,flags=re.DOTALL | re.IGNORECASE)
+        raw = re.sub(r"<thinking>.*? </thinking>", "", raw, flags=re.DOTALL | re.IGNORECASE)
         raw = re.sub(r"^```(?:json)?|```$", "", raw.strip(), flags=re.IGNORECASE | re.MULTILINE).strip()
 
         start_idx = raw.find('{')
