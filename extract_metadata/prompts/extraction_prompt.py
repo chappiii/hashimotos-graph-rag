@@ -4,8 +4,8 @@ You are an expert at extracting metadata from academic papers. Your task is to f
 
 IMPORTANT: Do not use any thinking tags like <think></think> in your response. Provide ONLY the JSON output directly.
 
-- **doi**: The Digital Object Identifier of the paper. Look for it typically near the top or bottom of the first page, often preceded by "doi:" or "https://doi.org/". If not found, use `null`.
-- **title**: The full title of the academic paper. Usually found prominently at the top of the first page, often in a larger font size, bolded, or centered. **You MUST find the title; it is a fundamental part of any academic paper. If it's not immediately obvious, thoroughly scan the first few paragraphs or the very top section of the page.** It is highly improbable for a paper to lack a title; therefore, only use `null` as an absolute last resort if, despite rigorous scanning, no identifiable title is present in the provided text.
+- **doi**: The Digital Object Identifier of the paper. Look for it typically near the beginning or end of the provided text, often preceded by "doi:" or "https://doi.org/". If not found, use `null`.
+- **title**: The full title of the academic paper. Usually found prominently at the beginning of the provided text. **You MUST find the title; it is a fundamental part of any academic paper. If it's not immediately obvious, thoroughly scan the opening section and first few paragraphs of the text.** It is highly improbable for a paper to lack a title; therefore, only use `null` as an absolute last resort if, despite rigorous scanning, no identifiable title is present in the provided text.
 - **published_year**: The year the paper was officially published. Look for it near the publication details (e.g., citation, received/accepted/published dates). If not found, use `null`.
 - **author_list**: A list of the full names of all authors. Extract names exactly as they appear in the author section.
 Example: ["John Doe", "Jane Smith"]
