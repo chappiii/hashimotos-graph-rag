@@ -12,16 +12,16 @@ __pycach__
 # Pdfs and GT extract metadata
 # extract_metadata/pdfs
 # extract_metadata/p
-extract_metadata/GT
-extract_metadata/GT_grouped
+extract_metadata/GT/
+extract_metadata/GT_grouped/
+extract_metadata/experiments/results/
+extract_metadata/experiment_evaluation/
 
-experiments/results/
-extract_metadata/extracted_metadata
 
 
 # chunk pdf
-chunk_pdf_section/chunk_md
-chunk_pdf_section/xml
+chunk_pdf_section/chunk_md/
+chunk_pdf_section/xml/
 
 
 *.zip
