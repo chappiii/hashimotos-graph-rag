@@ -15,6 +15,7 @@ __pycach__
 extract_metadata/GT/
 extract_metadata/GT_grouped/
 extract_metadata/experiments/results/
+extract_metadata/experiments/raw_logs.py
 extract_metadata/experiment_evaluation/
 extract_metadata/extracted_metadata/
 
