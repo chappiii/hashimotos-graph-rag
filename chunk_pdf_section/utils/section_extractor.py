@@ -1,6 +1,6 @@
 import re
 from lxml import etree
-from chunk_pdf_section.config.chunk_config import TEI_NS, MAIN_SECTION_TITLES
+from config.chunk_config import TEI_NS, MAIN_SECTION_TITLES
 
 def extract_sections(tei_path):
 
