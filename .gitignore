@@ -25,5 +25,8 @@ extract_metadata/extracted_metadata/
 chunk_pdf_section/chunk_md/
 chunk_pdf_section/xml/
 
+# Entity
+extract_entity_relation/
+
 
 *.zip

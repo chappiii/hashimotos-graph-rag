@@ -4,9 +4,9 @@ GROBID_URL = "http://localhost:8070/api/processFulltextDocument"
 GROBID_TIMEOUT = 120
 GROBID_RATE_LIMIT = 2
 
-PDF_DIR = "../pdfs"
-TEI_DIR = "xml"
-MD_DIR = "chunk_md"
+PDF_DIR = Path("../p")
+TEI_DIR = Path("xml")
+MD_DIR = Path("chunk_md")
 
 TEI_DIR.mkdir(exist_ok=True)
 MD_DIR.mkdir(exist_ok=True)

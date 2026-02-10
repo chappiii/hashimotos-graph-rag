@@ -1,5 +1,5 @@
 import requests
-from chunk_pdf_section.config.chunk_config import GROBID_URL, GROBID_TIMEOUT
+from config.chunk_config import GROBID_URL, GROBID_TIMEOUT
 
 def pdf_to_tei(pdf_path, tei_path):
     """
