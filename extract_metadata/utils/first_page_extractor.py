@@ -7,8 +7,11 @@ def extract_first_page(pdf_path: str) -> Optional[str]:
             pdf_reader = PyPDF2.PdfReader(file)
 
             if len(pdf_reader.pages) > 0:
-                first_page = pdf_reader.pages[0]
-                text = first_page.extract_text()
+                # first_page = pdf_reader.pages[0]
+                # text = first_page.extract_text()
+                text = ""
+                for i in range(min(2, len(pdf_reader.pages))):
+                    text += pdf_reader.pages[i].extract_text()
                 return text
             else:
                 print(f"PDF empty - no pages: {pdf_path}")
