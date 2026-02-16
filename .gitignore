@@ -18,6 +18,7 @@ extract_metadata/experiments/results/
 extract_metadata/experiments/raw_logs.py
 extract_metadata/experiment_evaluation/
 extract_metadata/extracted_metadata/
+extract_metadata/notebooks/pdf-info.json
 
 
 
