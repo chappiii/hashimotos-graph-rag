@@ -1,82 +1,97 @@
-# Extract Metadata
+# Metadata Extraction
 
-Automated metadata extraction from academic research papers using LLMs via Ollama.
+Extracts structured bibliographic metadata from academic PDFs using a two-stage local LLM pipeline — an extraction phase followed by a correction phase. Both stages run locally via [Ollama](https://ollama.com/).
 
-## Purpose
+---
 
-Extracts structured bibliographic metadata from PDF research papers using a two-stage LLM pipeline:
-1. **Extraction Stage**: Parses first page of PDF to extract metadata
-2. **Correction Stage**: Fixes spelling errors and formatting issues
+## What It Extracts
 
-## Extracted Fields
+For each PDF the pipeline produces a JSON record with the following fields:
 
-- `paper_id`, `doi`, `title`, `published_year`
-- `author_list`, `countries`, `purpose_of_work`, `keywords`
+| Field | Description |
+|---|---|
+| `paper_id` | PDF filename (Each paper was assigned a numeric ID and renamed for management and processing.)|
+| `doi` | Digital Object Identifier |
+| `title` | Paper title |
+| `published_year` | Year of publication |
+| `author_list` | Full author names as they appear |
+| `countries` | Countries derived from author affiliations |
+| `purpose_of_work` | 20–40 word summary of the research objective |
+| `keywords` | Keywords section or key terms extracted from abstract |
 
-## Prerequisites
+---
 
-- Python 3.8+
-- Ollama running locally
-- Dependencies: `PyPDF2`, `requests`, `psutil`
+## Pipeline
 
-## Usage
+```
+PDF
+ |
+ v
+First Page Extraction        # PyPDF2 — only the first page is used
+ |
+ v
+Extraction Prompt            # Instructs LLM to return structured JSON
+ |
+ v
+Extraction LLM               # Configured model via Ollama API
+ |
+ v
+Correction Prompt            # Instructs LLM to fix spelling/formatting only
+ |
+ v
+Correction LLM               # Same or different model via Ollama API
+ |
+ v
+JSON Output                  # Appended to extracted_metadata/{model}/run_{timestamp}/
+```
 
-1. Place PDF files in `pdfs/` directory
-2. Run: `python main.py`
-3. Output saved to `extracted_metadata/` as JSON files (batches of 10)
+**Why first page only?** Bibliographic metadata (title, authors, DOI, affiliations, keywords) almost always appears on the first page of a scientific paper. Limiting extraction to the first page keeps the context window small and reduces LLM latency.
+
+**Two-stage design:** The extraction stage focuses on pulling out the fields. The correction stage is a lightweight pass that fixes spelling errors, removes duplicate entries, and cleans up formatting — without being allowed to change any values.
+
+---
+
+## Output
+
+Results are written incrementally to avoid data loss on failure. Each batch of 10 PDFs produces a part file:
+
+```
+extracted_metadata/
+  {extraction_model}_{correction_model}/
+    run_{timestamp}/
+      {model}_extracted_part_1.json
+      {model}_extracted_part_2.json
+      ...
+      metrics.json     # per-document timing and memory usage
+      outputs.json     # raw LLM responses
+```
+
+Each part file holds a `{"papers": [...]}` array where every entry follows the metadata template.
+
+---
 
 ## Configuration
 
-Edit `config/metadata_config.py`:
+All settings live in `config/metadata_config.py` — models, batch size, paths, and API timeout.
 
-```python
-EXTRACTION_MODEL = "qwen3:latest"
-CORRECTION_MODEL = "qwen3:latest"
-PDFS = "./pdfs"
-OUTPUT_FOLDER = "./extracted_metadata"
-OLLAMA_URL = "http://127.0.0.1:11434/api/generate"
+---
+
+## Model Experiments
+
+The pipeline was evaluated across 9 model combinations (extraction → correction) on 115 papers:
+LLaMA→LLaMA, Qwen(small)→LLaMA, Mistral→LLaMA, DeepSeek-R1→LLaMA, Qwen→Qwen, Mistral→Mistral, DeepSeek-R1→DeepSeek-R1, Gemma→LLaMA, Gemma→Gemma.
+
+**Best accuracy:** Qwen → Qwen — 93.23% F1 in 1:51 over 115 papers
+
+**Best efficiency:** Mistral → Mistral — 89.26% F1 in 0:30 over 115 papers
+
+---
+
+## Running
+
+```bash
+cd extract_metadata
+python main.py
 ```
 
-## Output Format
-
-```json
-{
-  "papers": [
-    {
-      "paper_id": "example_paper",
-      "doi": "10.1234/example.2024",
-      "title": "Paper Title",
-      "published_year": "2024",
-      "author_list": ["Author 1", "Author 2"],
-      "countries": ["USA", "Germany"],
-      "purpose_of_work": "Research objective summary",
-      "keywords": ["keyword1", "keyword2"]
-    }
-  ]
-}
-```
-
-## Experiment Tracking
-
-The module includes experiment tracking for comparing different LLM models Runs.
-
-### Running Experiments
-
-1. Set model in `config/metadata_config.py`:
-
-2. Run: `python main.py`
-
-3. Results saved to:
-   ```
-   experiments/results/{model_name}/run_{timestamp}/
-   ├── metrics.json    # Timing + RAM per document
-   └── outputs.json    # Raw LLM responses
-   ```
-
-### Metrics Logged
-
-- Extraction time per document
-- Correction time per document
-- Total processing time
-- RAM usage (peak and per document)
-- Raw LLM outputs 
+Requires Ollama running locally with the target models pulled.
