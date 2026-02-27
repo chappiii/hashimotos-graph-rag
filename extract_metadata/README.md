@@ -83,6 +83,7 @@ Each part file holds a `{"papers": [...]}` array where every entry follows the m
     }
   ]
 }
+```
 
 ---
 
