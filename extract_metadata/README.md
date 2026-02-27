@@ -66,7 +66,23 @@ extracted_metadata/
       outputs.json     # raw LLM responses
 ```
 
-Each part file holds a `{"papers": [...]}` array where every entry follows the metadata template.
+Each part file holds a `{"papers": [...]}` array where every entry follows the metadata template:
+
+```json
+{
+  "papers": [
+    {
+      "paper_id": "42",
+      "doi": "10.1016/j.autrev.2023.103271",
+      "title": "Hashimoto's thyroiditis and the gut microbiome: a systematic review",
+      "published_year": "2023",
+      "author_list": ["Jane Smith", "Ahmed Al-Rashid", "Yuki Tanaka"],
+      "countries": ["United Kingdom", "Jordan", "Japan"],
+      "purpose_of_work": "To systematically review evidence linking gut microbiome composition to the onset and progression of Hashimoto's thyroiditis.",
+      "keywords": ["Hashimoto's thyroiditis", "gut microbiome", "autoimmune", "thyroid"]
+    }
+  ]
+}
 
 ---
 
