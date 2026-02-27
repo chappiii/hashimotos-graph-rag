@@ -1,4 +1,4 @@
-__pycach__
+__pycache__
 *.py[cod]
 *$py.class
 
@@ -10,8 +10,8 @@ __pycach__
 /p
 /paper-sections
 
-chunk_pdf_section/
 
+# Metadata extraction
 extract_metadata/GT/
 extract_metadata/GT_grouped/
 extract_metadata/experiments/results/
@@ -23,10 +23,10 @@ extract_metadata/notebooks/pdf-info.json
 
 
 # chunk pdf
-chunk_pdf_section/chunk_md/
-chunk_pdf_section/xml/
+pdf_section_chunker/chunks/
+chunk_pdf_section/
 
-# Entity
+# Entity and relation extraction
 extract_entity_relation/
 
 
