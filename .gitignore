@@ -8,10 +8,10 @@ __pycach__
 # Data
 /pdfs
 /p
+/paper-sections
 
-# Pdfs and GT extract metadata
-# extract_metadata/pdfs
-# extract_metadata/p
+chunk_pdf_section/
+
 extract_metadata/GT/
 extract_metadata/GT_grouped/
 extract_metadata/experiments/results/
