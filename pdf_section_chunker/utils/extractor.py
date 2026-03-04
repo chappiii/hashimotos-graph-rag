@@ -29,11 +29,7 @@ def extract_content_for_header(pdf_file, header_name: str, subheaders: list, nex
         "- Separator row must use exactly three dashes per cell: | :--- | :--- | :--- |\n"
         "- Never repeat or extend dashes beyond three per cell in the separator row\n"
         "- Include ALL data rows from the PDF — do not stop after the separator row\n"
-        "- Copy cell content verbatim from the PDF — never use placeholders\n\n"
-        "If the section contains figures, insert a description for each one at the exact position it appears in the text, using this format:\n"
-        "[Figure N: <description>]\n"
-        "For data figures (charts, forest plots, flow diagrams) include all readable values, labels, and key statistics in the description.\n"
-        "For visual figures (microscopy, scans, photographs) write a brief factual description of what is shown.\n\n"
+        "- Copy cell content verbatim from the PDF — never use placeholders\n"
         "Return only the document content. Do not include explanations, reasoning, or meta-commentary."
     )
     response = client.models.generate_content(
@@ -56,11 +52,7 @@ def process_paper(pdf_file, headers_output: str, output_dir: str, client):
             "- Separator row must use exactly three dashes per cell: | :--- | :--- | :--- |\n"
             "- Never repeat or extend dashes beyond three per cell in the separator row\n"
             "- Include ALL data rows from the PDF — do not stop after the separator row\n"
-            "- Copy cell content verbatim from the PDF — never use placeholders\n\n"
-            "If the document contains figures, insert a description for each one at the exact position it appears in the text, using this format:\n"
-            "[Figure N: <description>]\n"
-            "For data figures (charts, forest plots, flow diagrams) include all readable values, labels, and key statistics in the description.\n"
-            "For visual figures (microscopy, scans, photographs) write a brief factual description of what is shown.\n\n"
+            "- Copy cell content verbatim from the PDF — never use placeholders\n"
             "Return only the document content. Do not include explanations, reasoning, or meta-commentary."
         )
         response = client.models.generate_content(
