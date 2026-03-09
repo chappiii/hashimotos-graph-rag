@@ -25,11 +25,6 @@ def extract_content_for_header(pdf_file, header_name: str, subheaders: list, nex
         f"{stop_instruction}\n\n"
         "Sections may span multiple pages. Do not treat page numbers, running headers, or footers as section endings.\n\n"
         "Do not include content from other top-level sections.\n\n"
-        "If the section contains tables, format each as a GitHub-Flavored Markdown table using these rules:\n"
-        "- Separator row must use exactly three dashes per cell: | :--- | :--- | :--- |\n"
-        "- Never repeat or extend dashes beyond three per cell in the separator row\n"
-        "- Include ALL data rows from the PDF — do not stop after the separator row\n"
-        "- Copy cell content verbatim from the PDF — never use placeholders\n"
         "Return only the document content. Do not include explanations, reasoning, or meta-commentary."
     )
     response = client.models.generate_content(
@@ -37,6 +32,13 @@ def extract_content_for_header(pdf_file, header_name: str, subheaders: list, nex
         contents=[pdf_file, prompt],
         config=types.GenerateContentConfig(safety_settings=SAFETY_SETTINGS)
     )
+
+    if response.text is None:
+        reason = "UNKNOWN"
+        if response.candidates:
+            reason = str(response.candidates[0].finish_reason)
+        raise ValueError(f"Gemini returned None (finish_reason={reason})")
+
     return response.text
 
 
@@ -47,12 +49,7 @@ def process_paper(pdf_file, headers_output: str, output_dir: str, client):
     # No real sections found — extract and save full text as a single chunk
     if len(headers) <= 1:
         prompt = (
-            "Extract and return the complete text content of this PDF document.\n\n"
-            "If the document contains tables, format each as a GitHub-Flavored Markdown table using these rules:\n"
-            "- Separator row must use exactly three dashes per cell: | :--- | :--- | :--- |\n"
-            "- Never repeat or extend dashes beyond three per cell in the separator row\n"
-            "- Include ALL data rows from the PDF — do not stop after the separator row\n"
-            "- Copy cell content verbatim from the PDF — never use placeholders\n"
+            "You are an expert document analyst. Your task is to Extract and return the complete text content of this PDF document.\n\n"
             "Return only the document content. Do not include explanations, reasoning, or meta-commentary."
         )
         response = client.models.generate_content(
@@ -60,6 +57,13 @@ def process_paper(pdf_file, headers_output: str, output_dir: str, client):
             contents=[pdf_file, prompt],
             config=types.GenerateContentConfig(safety_settings=SAFETY_SETTINGS)
         )
+
+        if response.text is None:
+            reason = "UNKNOWN"
+            if response.candidates:
+                reason = str(response.candidates[0].finish_reason)
+            raise ValueError(f"Gemini returned None for full-text extraction (finish_reason={reason})")
+
         save_chunk(output_dir, "1-full_text.md", "Full Text", response.text)
         print("  No sections found — saved full text as single chunk")
         return
