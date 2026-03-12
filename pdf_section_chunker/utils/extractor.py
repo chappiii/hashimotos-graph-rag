@@ -49,8 +49,8 @@ def process_paper(pdf_file, headers_output: str, output_dir: str, client):
     # No real sections found — extract and save full text as a single chunk
     if len(headers) <= 1:
         prompt = (
-            "You are an expert document analyst. Your task is to Extract and return the complete text content of this PDF document.\n\n"
-            "Return only the document content. Do not include explanations, reasoning, or meta-commentary."
+            "You are an expert document analyst. Your task is to extract and return the complete text content of this PDF document.\n\n"
+            "Return only the document content. Do not include explanations, reasoning, or meta-commentary. Preserve the original structure as much as possible."
         )
         response = client.models.generate_content(
             model=GEMINI_MODEL,

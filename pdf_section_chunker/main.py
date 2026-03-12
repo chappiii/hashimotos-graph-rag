@@ -34,11 +34,13 @@ def main():
 
         print(f"[{idx}/{total}] Paper {base_name}")
 
+        # check if file is processed
         if SKIP_EXISTING and is_already_processed(base_name):
             print("  Skipping (already processed)")
             skipped += 1
             continue
 
+        # Check if Section map exists 
         if not md_path.exists():
             print(f"  Skipping — no section file: {md_path.name}")
             skipped += 1
