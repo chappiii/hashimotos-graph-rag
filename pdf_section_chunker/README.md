@@ -47,6 +47,52 @@ chunks/
     └── 8-appendix_a.md
 ```
 
+### 4. Figure & Table extraction (`figs_tables/<id>/`)
+
+Each paper's figures and tables are extracted into two JSON
+
+```
+figs_tables/
+└── 1/
+    ├── figures.json
+    └── tables.json
+```
+
+**Table schema:**
+
+```json
+{
+  "table_id": "1",
+  "table_type": "baseline_characteristics",
+  "section_label": "Results",
+  "caption": "Demographic and clinical characteristics of study participants.",
+  "population": "80 HT patients vs 60 healthy controls",
+  "groups": ["HT group", "Control group"],
+  "variables": ["Age", "BMI", "TSH", "TPO-Ab"],
+  "key_findings": [
+    "TSH higher in HT group: 5.8 vs 2.1 mIU/L, p<0.001"
+  ],
+  "model_adjustments": []
+}
+```
+
+**Figure schema:**
+
+```json
+{
+  "figure_id": "1",
+  "figure_type": "bar",
+  "section_label": "Results",
+  "caption": "Serum TPO-Ab levels in HT patients and controls.",
+  "population": "HT patients (n=80) vs controls (n=60)",
+  "groups": ["HT group", "Control group"],
+  "outcome": "TPO-Ab levels (IU/mL)",
+  "key_findings": [
+    "TPO-Ab significantly elevated in HT group vs controls, p<0.001"
+  ]
+}
+```
+
 ---
 
 ## Why this approach
@@ -59,10 +105,13 @@ We experimented with GROBID, docling, and local Ollama models before settling on
 
 ```bash
 cd pdf_section_chunker
-python main.py
-```
 
-The script processes all PDFs in `/pdfs` in numerical order.
+# Extract sections into chunks/
+python main.py
+
+# Extract figures and tables into figs_tables/
+python extract_figs_tables.py
+```
 
 ### Requirements
 
