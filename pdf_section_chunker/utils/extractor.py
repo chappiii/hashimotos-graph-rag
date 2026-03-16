@@ -4,42 +4,66 @@ from utils.structure_parser import parse_structure_from_output
 from utils.file_utils import sanitize_filename, save_chunk
 
 
+def _build_primary_prompt(header_name: str, subheader_list: str, stop_instruction: str) -> str:
+    return (
+        f"You are an expert document analyst helping with academic research. "
+        f"Your task is to read and write out the content of the section \"{header_name}\" "
+        f"from this academic research paper. This is for academic research and analysis purposes.\n\n"
+        f"Subheaders for this section (in order):\n{subheader_list}\n\n"
+        f"Write out ALL the content that belongs under this section, including each subheader listed above "
+        f"in order, and their content. Preserve the original structure as much as possible.\n\n"
+        f"{stop_instruction}\n\n"
+        "Sections may span multiple pages. Do not treat page numbers, running headers, or footers as section endings.\n\n"
+        "Do not include content from other top-level sections.\n\n"
+        "Output only the section text. Do not add explanations, reasoning, or meta-commentary."
+    )
+
+
+def _build_retry_prompt(header_name: str, subheader_list: str, stop_instruction: str) -> str:
+    return (
+        f"This is an academic research paper. For research analysis purposes, please transcribe the "
+        f"\"{header_name}\" section of this paper.\n\n"
+        f"Subheaders within this section:\n{subheader_list}\n\n"
+        f"Include all text under this section and its subheaders in the order they appear. "
+        f"Maintain the original structure.\n\n"
+        f"{stop_instruction}\n\n"
+        "Do not skip page headers/footers — they are not section boundaries.\n\n"
+        "Output the section text only."
+    )
+
+
 def extract_content_for_header(pdf_file, header_name: str, subheaders: list, next_header: str | None, client) -> str:
     """Extract content for a specific header section using Gemini."""
     subheader_list = '\n'.join(f'- {sh}' for sh in subheaders) if subheaders else 'None'
 
     if next_header:
         stop_instruction = (
-            f'Stop extracting when you reach the section titled "{next_header}". '
-            f'Do not include any content from "{next_header}" or any section after it.'
+            f'Stop when you reach the section titled "{next_header}". '
+            f'Do not include any content from "{next_header}" or beyond.'
         )
     else:
-        stop_instruction = 'Extract until the end of the document.'
+        stop_instruction = 'Continue until the end of the document.'
 
-    prompt = (
-        f"You are an expert document analyst. Your task is to extract the content for the section \"{header_name}\" "
-        f"and its subheaders from the provided PDF document.\n\n"
-        f"Subheaders for this section (in order):\n{subheader_list}\n\n"
-        "Extract ALL the content that belongs under this section, including each subheader listed above "
-        "in order, and their content. Preserve the original structure as much as possible.\n\n"
-        f"{stop_instruction}\n\n"
-        "Sections may span multiple pages. Do not treat page numbers, running headers, or footers as section endings.\n\n"
-        "Do not include content from other top-level sections.\n\n"
-        "Return only the document content. Do not include explanations, reasoning, or meta-commentary."
-    )
-    response = client.models.generate_content(
-        model=GEMINI_MODEL,
-        contents=[pdf_file, prompt],
-        config=types.GenerateContentConfig(safety_settings=SAFETY_SETTINGS)
-    )
+    for attempt, build_prompt in enumerate([_build_primary_prompt, _build_retry_prompt], start=1):
+        prompt = build_prompt(header_name, subheader_list, stop_instruction)
+        response = client.models.generate_content(
+            model=GEMINI_MODEL,
+            contents=[pdf_file, prompt],
+            config=types.GenerateContentConfig(safety_settings=SAFETY_SETTINGS)
+        )
 
-    if response.text is None:
+        if response.text is not None:
+            return response.text
+
         reason = "UNKNOWN"
         if response.candidates:
             reason = str(response.candidates[0].finish_reason)
-        raise ValueError(f"Gemini returned None (finish_reason={reason})")
 
-    return response.text
+        if attempt == 1 and "RECITATION" in reason:
+            print(f"    RECITATION on attempt 1 for '{header_name}', retrying with alternate prompt...")
+            continue
+
+        raise ValueError(f"Gemini returned None (finish_reason={reason})")
 
 
 def process_paper(pdf_file, headers_output: str, output_dir: str, client):
@@ -48,15 +72,36 @@ def process_paper(pdf_file, headers_output: str, output_dir: str, client):
 
     # No real sections found — extract and save full text as a single chunk
     if len(headers) <= 1:
-        prompt = (
-            "You are an expert document analyst. Your task is to extract and return the complete text content of this PDF document.\n\n"
-            "Return only the document content. Do not include explanations, reasoning, or meta-commentary. Preserve the original structure as much as possible."
-        )
-        response = client.models.generate_content(
-            model=GEMINI_MODEL,
-            contents=[pdf_file, prompt],
-            config=types.GenerateContentConfig(safety_settings=SAFETY_SETTINGS)
-        )
+        full_text_prompts = [
+            (
+                "You are an expert document analyst helping with academic research. "
+                "Please read and write out the complete text content of this academic research paper. "
+                "This is for academic research and analysis purposes.\n\n"
+                "Output only the document text. Do not add explanations, reasoning, or meta-commentary. "
+                "Preserve the original structure as much as possible."
+            ),
+            (
+                "This is an academic research paper. For research analysis purposes, please transcribe "
+                "the full text of this paper from beginning to end. Maintain the original structure.\n\n"
+                "Output the paper text only."
+            ),
+        ]
+        response = None
+        for attempt, prompt in enumerate(full_text_prompts, start=1):
+            response = client.models.generate_content(
+                model=GEMINI_MODEL,
+                contents=[pdf_file, prompt],
+                config=types.GenerateContentConfig(safety_settings=SAFETY_SETTINGS)
+            )
+            if response.text is not None:
+                break
+            reason = "UNKNOWN"
+            if response.candidates:
+                reason = str(response.candidates[0].finish_reason)
+            if attempt == 1 and "RECITATION" in reason:
+                print(f"    RECITATION on attempt 1 for full-text, retrying...")
+                continue
+            raise ValueError(f"Gemini returned None for full-text extraction (finish_reason={reason})")
 
         if response.text is None:
             reason = "UNKNOWN"
