@@ -26,24 +26,24 @@ SAFETY_SETTINGS = [
 ]
 
 TABLE_SCHEMA = {
-    "table_id":      None,
-    "table_type":    None,
-    "section_label": None,
-    "caption":       None,
-    "population":    None,
-    "groups":        [],
-    "variables": [],
-    "key_findings":  [],
-    "model_adjustments": [],
+    "table_id":          int,
+    "table_type":        str,
+    "section_label":     str,
+    "caption":           str,
+    "population":        str,
+    "groups":            [str],
+    "variables":         [str],
+    "key_findings":      [str],
+    "model_adjustments": [str],
 }
 
 FIGURE_SCHEMA = {
-    "figure_id":     None,
-    "figure_type":   None,
-    "section_label": None,
-    "caption":       None,
-    "population":    None,
-    "groups":        [],
-    "outcome":       None,
-    "key_findings":  [],
+    "figure_id":     int,
+    "figure_type":   str,
+    "section_label": str,
+    "caption":       str,
+    "population":    str,
+    "groups":        [str],
+    "outcome":       str,
+    "key_findings":  [str],
 }

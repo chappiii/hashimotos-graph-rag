@@ -19,6 +19,14 @@ from utils.gemini_client import configure_gemini, delete_pdf, upload_pdf
 
 OUTPUT_DIR = Path(FIGS_TABLES_DIR)
 
+
+def _type_serializer(obj):
+    if obj is int:   return "integer"
+    if obj is str:   return "string"
+    if obj is float: return "number"
+    if obj is bool:  return "boolean"
+    raise TypeError(f"Not serializable: {obj!r}")
+
 def get_sorted_pdfs() -> list:
     pdfs = [f for f in Path(PDFS).glob("*.pdf") if f.stem.isdigit()]
     return sorted(pdfs, key=lambda f: int(f.stem))
@@ -54,7 +62,7 @@ def _call_gemini(pdf_file, prompt: str, client) -> list:
     return json.loads(response.text) or []
 
 def extract_tables(pdf_file, client) -> list:
-    schema_str = json.dumps(TABLE_SCHEMA, indent=2)
+    schema_str = json.dumps(TABLE_SCHEMA, indent=2, default=_type_serializer)
     prompt = (
         "You are an expert medical research analyst. "
         "Extract ALL tables from this PDF document.\n\n"
@@ -66,8 +74,10 @@ def extract_tables(pdf_file, client) -> list:
         "Return a JSON object per table using this exact schema:\n"
         f"{schema_str}\n\n"
         "Field instructions:\n"
-        "- table_id: always assign a sequential ID based on reading order regardless of how the PDF labels it "
-        "(e.g. 'Table 1', 'Table 2', …); the verbatim PDF label (if any) is already captured in caption\n"
+        "- table_id: MUST be a JSON integer (e.g. 1, 2, 3). "
+        "Never a string. Never 'Table 1'. Just the number. "
+        "Assign sequentially by reading order starting at 1. "
+        "The PDF label is already captured in caption\n"
         "- table_type: one of: baseline_characteristics, regression, outcomes\n"
         "- section_label: top-level section name where the table appears (e.g. 'Results')\n"
         "- caption: full caption text verbatim from the PDF\n"
@@ -85,7 +95,7 @@ def extract_tables(pdf_file, client) -> list:
     return _call_gemini(pdf_file, prompt, client)
 
 def extract_figures(pdf_file, client) -> list:
-    schema_str = json.dumps(FIGURE_SCHEMA, indent=2)
+    schema_str = json.dumps(FIGURE_SCHEMA, indent=2, default=_type_serializer)
     prompt = (
         "You are an expert medical research analyst. "
         "Extract ALL figures from this PDF document.\n\n"
@@ -97,8 +107,10 @@ def extract_figures(pdf_file, client) -> list:
         "Return a JSON object per figure using this exact schema:\n"
         f"{schema_str}\n\n"
         "Field instructions:\n"
-        "- figure_id: always assign a sequential ID based on reading order regardless of how the PDF labels it "
-        "(e.g. 'Figure 1', 'Figure 2', …); the verbatim PDF label (if any) is already captured in caption\n"
+        "- figure_id: MUST be a JSON integer (e.g. 1, 2, 3). "
+        "Never a string. Never 'Figure 1'. Just the number. "
+        "Assign sequentially by reading order starting at 1. "
+        "The PDF label is already captured in caption\n"
         "- figure_type: one of: KM | forest | bar | box | ROC | scatter | flow | other\n"
         "- section_label: top-level section name where the figure appears (e.g. 'Results')\n"
         "- caption: full caption text verbatim from the PDF\n"
