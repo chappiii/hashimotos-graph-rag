@@ -1,14 +1,14 @@
 # PDF Section Chunker
 
-Extracts structured content from research PDFs using the Gemini 2.5-flash API. Each paper is split into per-section markdown files, ready for downstream use in a knowledge graph Construction.
+Automatically extracts structured content from research PDFs using the Gemini. Each paper is split into per-section markdown files, ready for downstream use in knowledge graph construction.
 
 ---
 
 ## How it works
 
-### 1. Human-defined section maps (`/paper-sections`)
+### 1. Automatic section structure extraction (Pass 1)
 
-For each paper, a human has pre-read the PDF and written a lightweight outline in `/paper-sections/<id>.md`. This file lists the top-level sections and their subheadings using a simple `*` indented format:
+The pipeline uploads each PDF to the Gemini File API and prompts the model to extract the section hierarchy — title, headers, and subheaders. The result is saved to `auto-sections/<id>.md` in a `*`-indented format:
 
 ```
 * Paper Title
@@ -24,11 +24,9 @@ For each paper, a human has pre-read the PDF and written a lightweight outline i
 * References
 ```
 
-### 2. Model-powered extraction
+### 2. Section content extraction (Pass 2)
 
-The pipeline uploads the full PDF to the Gemini File API, then iterates over each section defined in the map. For each section it sends a prompt asking the model to extract everything between that section header and the next one — preserving prose, subheadings, and formatting all tables as Markdown.
-
-This means the human only has to identify *what* the sections are. The model handles pulling out the full content, including nested subheadings, tables, figures references, and statistical results.
+Using the extracted structure, the pipeline iterates over each section and prompts the model to extract everything between that section header and the next one — preserving prose, subheadings, and formatting.
 
 ### 3. Chunked output (`chunks/<id>/`)
 
@@ -43,8 +41,18 @@ chunks/
     ├── 4-3._results.md
     ├── 5-4._discussion.md
     ├── 6-5._conclusions.md
-    ├── 7-references.md
-    └── 8-appendix_a.md
+    └── 7-references.md
+```
+
+### Auto-sections output (`auto-sections/<id>.md`)
+
+The extracted section structure for each paper is saved for inspection and comparison against ground truth:
+
+```
+auto-sections/
+├── 1.md
+├── 2.md
+└── ...
 ```
 
 ### 4. Figure & Table extraction (`figs_tables/<id>/`)
@@ -62,7 +70,7 @@ figs_tables/
 
 ```json
 {
-  "table_id": "1",
+  "table_id": 1,
   "table_type": "baseline_characteristics",
   "section_label": "Results",
   "caption": "Demographic and clinical characteristics of study participants.",
@@ -80,7 +88,7 @@ figs_tables/
 
 ```json
 {
-  "figure_id": "1",
+  "figure_id": 1,
   "figure_type": "bar",
   "section_label": "Results",
   "caption": "Serum TPO-Ab levels in HT patients and controls.",
@@ -97,7 +105,7 @@ figs_tables/
 
 ## Why this approach
 
-We experimented with GROBID, docling, and local Ollama models before settling on this method. The research papers in this corpus vary significantly in formatting and structure, and all of the automated tools failed to reliably capture the section boundaries — even when section headers were provided manually. Local Ollama models also lack native PDF reading capability, requiring a conversion step that introduced further quality loss. Gemini's ability to read the raw PDF directly and reason about its layout produced consistently better results across all paper formats.
+We experimented with GROBID, docling, and local Ollama models before settling on this method. The research papers in this corpus vary significantly in formatting and structure, and all of the automated tools failed to reliably capture the section boundaries — even when section headers were provided manually. Local Ollama models also lack native PDF reading capability, requiring a conversion step that introduced further quality loss. Gemini's File API allows uploading full PDFs and referencing them directly in prompts, avoiding lossy PDF-to-text conversion. Its ability to reason over the raw layout produced consistently better results across all paper formats.
 
 ---
 
