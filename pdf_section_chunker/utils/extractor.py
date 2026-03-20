@@ -4,6 +4,73 @@ from utils.structure_parser import parse_structure_from_output
 from utils.file_utils import sanitize_filename, save_chunk
 
 
+STRUCTURE_PROMPT = """\
+Extract the section structure of this academic research paper.
+
+### Instructions:
+
+* Identify the primary title of the paper as the first entry.
+* Extract all main section headers (e.g., Abstract, Introduction, Methods, Results, Discussion, Conclusion, References, Appendix).
+* Extract all subsections and sub-subsections, preserving their original numbering and hierarchy exactly as they appear in the paper (e.g., 1., 2.1., 2.1.1.).
+* Abstract must always be a single top-level entry. Never split a structured abstract into sub-sections (e.g., Background, Objectives, Methods, Results, Conclusions are all part of Abstract — do not list them separately).
+* Output must be a hierarchical bulleted list that precisely reflects the manuscript's organization.
+
+### Formatting rules:
+
+* Every line must start with a `*` bullet (use `*` only, never `-` or other markers).
+* Use 4-space indentation for sub-levels.
+* Do not use bold, italic, or any markdown formatting on section names.
+* Do not include trailing punctuation (colons, periods) on section names.
+* Do not include cross-references (e.g., "(see Appendix E)") in section names.
+* Preserve the original case and numbering of each section name exactly as written in the paper.
+
+### Sections to exclude:
+
+* Author contributions, funding statements, ethical statements, data availability, conflicts of interest, acknowledgements.
+* Abbreviations, keywords, highlights, graphical abstracts.
+* Figure captions, table titles.
+* Running headers or footers (page numbers, journal names, author names).
+
+### Example output:
+
+* Main Title of the Paper
+* Abstract
+* 1. Introduction
+* 2. Materials and Methods
+    * 2.1. Study Population
+    * 2.2. Experimental Procedure
+        * 2.2.1. Phase 1
+        * 2.2.2. Phase 2
+    * 2.3. Statistical Analysis
+* 3. Results
+    * 3.1. Primary Outcomes
+    * 3.2. Secondary Outcomes
+* 4. Discussion
+* 5. Conclusion
+* References
+* Appendix A
+
+Extract the section headers now:
+"""
+
+
+def extract_structure(pdf_file, client) -> str:
+    """Pass 1: Extract section structure from PDF using Gemini."""
+    response = client.models.generate_content(
+        model=GEMINI_MODEL,
+        contents=[pdf_file, STRUCTURE_PROMPT],
+        config=types.GenerateContentConfig(safety_settings=SAFETY_SETTINGS)
+    )
+
+    if response.text is not None:
+        return response.text
+
+    reason = "UNKNOWN"
+    if response.candidates:
+        reason = str(response.candidates[0].finish_reason)
+    raise ValueError(f"Structure extraction failed (finish_reason={reason})")
+
+
 def _build_primary_prompt(header_name: str, subheader_list: str, stop_instruction: str) -> str:
     return (
         f"You are an expert document analyst helping with academic research. "

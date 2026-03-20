@@ -1,13 +1,13 @@
 import sys
 from pathlib import Path
 from config.section_chunker_config import (
-    PDFS, SECTIONS_DIR,
-    GEMINI_API_KEY, UPLOAD_POLL_INTERVAL, SKIP_EXISTING
+    PDFS, GEMINI_API_KEY, UPLOAD_POLL_INTERVAL, SKIP_EXISTING
 )
 from utils.gemini_client import configure_gemini, upload_pdf, delete_pdf
-from utils.structure_parser import read_structure_from_md
-from utils.file_utils import ensure_output_directory, is_already_processed
-from utils.extractor import process_paper
+from utils.file_utils import (
+    ensure_output_directory, is_already_processed, save_auto_section
+)
+from utils.extractor import extract_structure, process_paper
 
 
 def get_sorted_pdfs() -> list:
@@ -30,30 +30,27 @@ def main():
 
     for idx, pdf_path in enumerate(pdfs, 1):
         base_name = pdf_path.stem
-        md_path = Path(SECTIONS_DIR) / f"{base_name}.md"
-
         print(f"[{idx}/{total}] Paper {base_name}")
 
-        # check if file is processed
         if SKIP_EXISTING and is_already_processed(base_name):
             print("  Skipping (already processed)")
             skipped += 1
             continue
 
-        # Check if Section map exists 
-        if not md_path.exists():
-            print(f"  Skipping — no section file: {md_path.name}")
-            skipped += 1
-            continue
-
-        output_dir = ensure_output_directory(base_name)
-        headers_output = read_structure_from_md(str(md_path))
-
         pdf_file = None
         try:
             pdf_file = upload_pdf(str(pdf_path), client, UPLOAD_POLL_INTERVAL)
+
+            # Pass 1: Extract section structure from PDF
+            print("  Extracting section structure...")
+            headers_output = extract_structure(pdf_file, client)
+            save_auto_section(base_name, headers_output)
+
+            # Pass 2: Extract content per section
+            output_dir = ensure_output_directory(base_name)
             process_paper(pdf_file, headers_output, output_dir, client)
             success += 1
+
         except Exception as e:
             print(f"  FAILED: {e}")
             failed += 1

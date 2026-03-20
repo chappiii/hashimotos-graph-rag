@@ -7,6 +7,7 @@ load_dotenv()
 
 PDFS = "../pdfs"
 SECTIONS_DIR = "../paper-sections"
+AUTO_SECTIONS_DIR = "./auto-sections"
 CHUNKS_DIR = "./chunks"
 FIGS_TABLES_DIR = "./figs_tables"
 
