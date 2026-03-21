@@ -1,3 +1,4 @@
+import time
 from google.genai import types
 from config.section_chunker_config import GEMINI_MODEL, SAFETY_SETTINGS
 from utils.structure_parser import parse_structure_from_output
@@ -54,16 +55,18 @@ Extract the section headers now:
 """
 
 
-def extract_structure(pdf_file, client) -> str:
-    """Pass 1: Extract section structure from PDF using Gemini."""
+def extract_structure(pdf_file, client) -> tuple[str, float]:
+    """Pass 1: Extract section structure from PDF. Returns (text, elapsed_seconds)."""
+    start = time.time()
     response = client.models.generate_content(
         model=GEMINI_MODEL,
         contents=[pdf_file, STRUCTURE_PROMPT],
         config=types.GenerateContentConfig(safety_settings=SAFETY_SETTINGS)
     )
+    elapsed = time.time() - start
 
     if response.text is not None:
-        return response.text
+        return response.text, elapsed
 
     reason = "UNKNOWN"
     if response.candidates:
@@ -99,7 +102,7 @@ def _build_retry_prompt(header_name: str, subheader_list: str, stop_instruction:
     )
 
 
-def extract_content_for_header(pdf_file, header_name: str, subheaders: list, next_header: str | None, client) -> str:
+def extract_content_for_header(pdf_file, header_name: str, subheaders: list, next_header: str | None, client) -> tuple[str, float]:
     """Extract content for a specific header section using Gemini."""
     subheader_list = '\n'.join(f'- {sh}' for sh in subheaders) if subheaders else 'None'
 
@@ -113,14 +116,16 @@ def extract_content_for_header(pdf_file, header_name: str, subheaders: list, nex
 
     for attempt, build_prompt in enumerate([_build_primary_prompt, _build_retry_prompt], start=1):
         prompt = build_prompt(header_name, subheader_list, stop_instruction)
+        start = time.time()
         response = client.models.generate_content(
             model=GEMINI_MODEL,
             contents=[pdf_file, prompt],
             config=types.GenerateContentConfig(safety_settings=SAFETY_SETTINGS)
         )
+        elapsed = time.time() - start
 
         if response.text is not None:
-            return response.text
+            return response.text, elapsed
 
         reason = "UNKNOWN"
         if response.candidates:
@@ -133,9 +138,10 @@ def extract_content_for_header(pdf_file, header_name: str, subheaders: list, nex
         raise ValueError(f"Gemini returned None (finish_reason={reason})")
 
 
-def process_paper(pdf_file, headers_output: str, output_dir: str, client):
-    """Extract and save all sections of a paper."""
+def process_paper(pdf_file, headers_output: str, output_dir: str, client) -> list[dict]:
+    """Extract and save all sections of a paper. Returns list of per-call timing dicts."""
     headers = parse_structure_from_output(headers_output)
+    call_times = []
 
     # No real sections found — extract and save full text as a single chunk
     if len(headers) <= 1:
@@ -155,12 +161,15 @@ def process_paper(pdf_file, headers_output: str, output_dir: str, client):
         ]
         response = None
         for attempt, prompt in enumerate(full_text_prompts, start=1):
+            start = time.time()
             response = client.models.generate_content(
                 model=GEMINI_MODEL,
                 contents=[pdf_file, prompt],
                 config=types.GenerateContentConfig(safety_settings=SAFETY_SETTINGS)
             )
+            elapsed = time.time() - start
             if response.text is not None:
+                call_times.append({"section": "Full Text", "seconds": elapsed})
                 break
             reason = "UNKNOWN"
             if response.candidates:
@@ -178,7 +187,7 @@ def process_paper(pdf_file, headers_output: str, output_dir: str, client):
 
         save_chunk(output_dir, "1-full_text.md", "Full Text", response.text)
         print("  No sections found — saved full text as single chunk")
-        return
+        return call_times
 
     section_index = 1
     for i, header_info in enumerate(headers, 1):
@@ -192,7 +201,8 @@ def process_paper(pdf_file, headers_output: str, output_dir: str, client):
 
         try:
             print(f"  Extracting: {header_name}")
-            content = extract_content_for_header(pdf_file, header_name, subheaders, next_header, client)
+            content, elapsed = extract_content_for_header(pdf_file, header_name, subheaders, next_header, client)
+            call_times.append({"section": header_name, "seconds": elapsed})
         except Exception as e:
             print(f"  Error extracting '{header_name}': {e}")
             content = f"Error extracting content: {e}"
@@ -202,3 +212,5 @@ def process_paper(pdf_file, headers_output: str, output_dir: str, client):
         save_chunk(output_dir, filename, header_name, content)
         print(f"  Saved: {filename}")
         section_index += 1
+
+    return call_times
