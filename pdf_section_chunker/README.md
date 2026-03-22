@@ -6,9 +6,9 @@ Automatically extracts structured content from research PDFs using the Gemini. E
 
 ## How it works
 
-### 1. Automatic section structure extraction (Pass 1)
+### 1. Structure extraction (Pass 1)
 
-The pipeline uploads each PDF to the Gemini File API and prompts the model to extract the section hierarchy — title, headers, and subheaders. The result is saved to `auto-sections/<id>.md` in a `*`-indented format:
+The pipeline uploads each PDF to the Gemini File API and prompts the model to extract the section hierarchy — title, headers, and subheaders.
 
 ```
 * Paper Title
@@ -24,11 +24,24 @@ The pipeline uploads each PDF to the Gemini File API and prompts the model to ex
 * References
 ```
 
-### 2. Section content extraction (Pass 2)
+### 2. Post-processing
 
-Using the extracted structure, the pipeline iterates over each section and prompts the model to extract everything between that section header and the next one — preserving prose, subheadings, and formatting.
+Deterministic cleanup applied to the raw structure before verification:
 
-### 3. Chunked output (`chunks/<id>/`)
+- Normalizes numbering separators (e.g., `1 | Introduction` → `1. Introduction`) — some PDFs use pipes instead of dots in their section numbering.
+- Strips appendix subtitles (e.g., `Appendix A Full Title` → `Appendix A`) — keeps naming consistent across papers.
+- Removes excluded sections (supplementary/supporting information) — these are pointers to external files with no extractable content.
+
+### 3. Structure correction (Pass 1.5)
+
+The cleaned structure is sent back to the model alongside the PDF for comparison. The model checks for missing, extra, or misnamed sections and outputs a corrected structure. Early testing showed that a single-shot extraction (Pass 1 alone) would miss sections or rename them — especially in longer, non-standard papers like clinical guidelines. A verification pass turns this into a self-correcting process.
+
+
+### 4. Content extraction (Pass 2)
+
+Using the verified structure, the pipeline iterates over each section and prompts the model to extract everything between that section header and the next one — preserving prose, subheadings, and formatting.
+
+### 5. Chunked output (`chunks/<id>/`)
 
 Each section is saved as a numbered markdown file under `chunks/<paper-id>/`:
 
@@ -42,17 +55,6 @@ chunks/
     ├── 5-4._discussion.md
     ├── 6-5._conclusions.md
     └── 7-references.md
-```
-
-### Auto-sections output (`auto-sections/<id>.md`)
-
-The extracted section structure for each paper is saved for inspection and comparison against ground truth:
-
-```
-auto-sections/
-├── 1.md
-├── 2.md
-└── ...
 ```
 
 ### 4. Figure & Table extraction (`figs_tables/<id>/`)
