@@ -14,6 +14,8 @@ Extract the section structure of this academic research paper.
 * Extract all main section headers (e.g., Abstract, Introduction, Methods, Results, Discussion, Conclusion, References, Appendix).
 * Extract all subsections and sub-subsections, preserving their original numbering and hierarchy exactly as they appear in the paper (e.g., 1., 2.1., 2.1.1.).
 * Abstract must always be a single top-level entry. Never split a structured abstract into sub-sections (e.g., Background, Objectives, Methods, Results, Conclusions are all part of Abstract — do not list them separately).
+* Some papers may not have explicit headings for early sections such as Abstract or Introduction. If the paper begins with unlabeled content that clearly functions as an Abstract or Introduction, include the appropriate section name in the output.
+* For appendices, use only the label (e.g., Appendix A, Appendix B) without the full subtitle.
 * Output must be a hierarchical bulleted list that precisely reflects the manuscript's organization.
 
 ### Formatting rules:
@@ -31,6 +33,7 @@ Extract the section structure of this academic research paper.
 * Abbreviations, keywords, highlights, graphical abstracts.
 * Figure captions, table titles.
 * Running headers or footers (page numbers, journal names, author names).
+* Supplementary information, supporting information.
 
 ### Example output:
 
@@ -55,6 +58,32 @@ Extract the section headers now:
 """
 
 
+CORRECTION_PROMPT = """\
+Below is a section structure extracted from this academic research paper. \
+Compare it carefully against the actual PDF.
+
+### Extracted structure:
+
+{structure}
+
+### Task:
+
+* Check if any sections in the PDF are missing from the structure above.
+* Check if any sections are misnamed or do not match the PDF.
+* Check if any sections were included that should be excluded \
+(author contributions, funding, acknowledgements, abbreviations, keywords, \
+supplementary information, supporting information).
+* Abstract must be a single top-level entry — structured abstract sub-sections \
+(Background, Objectives, Methods, Results, Conclusions) should not be listed separately.
+* For appendices, use only the label (e.g., Appendix A) without the full subtitle.
+
+Output the corrected section structure using the exact same formatting rules: \
+`*` bullets, 4-space indentation for sub-levels, no bold/italic, no trailing punctuation.
+
+If the structure is already correct, output it unchanged.
+"""
+
+
 def extract_structure(pdf_file, client) -> tuple[str, float]:
     """Pass 1: Extract section structure from PDF. Returns (text, elapsed_seconds)."""
     start = time.time()
@@ -74,7 +103,28 @@ def extract_structure(pdf_file, client) -> tuple[str, float]:
     raise ValueError(f"Structure extraction failed (finish_reason={reason})")
 
 
+def correct_structure(pdf_file, cleaned_structure: str, client) -> tuple[str, float]:
+    """Pass 1.5: Correct extracted structure against PDF. Returns (text, elapsed_seconds)."""
+    prompt = CORRECTION_PROMPT.format(structure=cleaned_structure)
+    start = time.time()
+    response = client.models.generate_content(
+        model=GEMINI_MODEL,
+        contents=[pdf_file, prompt],
+        config=types.GenerateContentConfig(safety_settings=SAFETY_SETTINGS)
+    )
+    elapsed = time.time() - start
+
+    if response.text is not None:
+        return response.text, elapsed
+
+    reason = "UNKNOWN"
+    if response.candidates:
+        reason = str(response.candidates[0].finish_reason)
+    raise ValueError(f"Structure correction failed (finish_reason={reason})")
+
+
 def _build_primary_prompt(header_name: str, subheader_list: str, stop_instruction: str) -> str:
+    """Build the primary content extraction prompt for a section."""
     return (
         f"You are an expert document analyst helping with academic research. "
         f"Your task is to read and write out the content of the section \"{header_name}\" "
@@ -90,6 +140,7 @@ def _build_primary_prompt(header_name: str, subheader_list: str, stop_instructio
 
 
 def _build_retry_prompt(header_name: str, subheader_list: str, stop_instruction: str) -> str:
+    """Build the alternate prompt for RECITATION retry."""
     return (
         f"This is an academic research paper. For research analysis purposes, please transcribe the "
         f"\"{header_name}\" section of this paper.\n\n"

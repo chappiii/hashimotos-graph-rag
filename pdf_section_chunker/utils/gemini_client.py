@@ -3,11 +3,13 @@ from google import genai
 from google.genai import types
 
 
-def configure_gemini(api_key: str):
+def configure_gemini(api_key: str) -> genai.Client:
+    """Create and return a Gemini API client."""
     return genai.Client(api_key=api_key)
 
 
-def upload_pdf(pdf_path: str, client, poll_interval: int = 2):
+def upload_pdf(pdf_path: str, client: genai.Client, poll_interval: int = 2):
+    """Upload a PDF to Gemini and wait for processing to complete."""
     print(f"  Uploading {pdf_path}...")
     pdf_file = client.files.upload(
         file=str(pdf_path),
@@ -22,6 +24,7 @@ def upload_pdf(pdf_path: str, client, poll_interval: int = 2):
     return pdf_file
 
 
-def delete_pdf(pdf_file, client):
+def delete_pdf(pdf_file, client: genai.Client) -> None:
+    """Delete an uploaded PDF from Gemini."""
     client.files.delete(name=pdf_file.name)
     print(f"  Deleted uploaded file: {pdf_file.name}")

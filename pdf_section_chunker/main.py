@@ -7,9 +7,11 @@ from config.section_chunker_config import (
 )
 from utils.gemini_client import configure_gemini, upload_pdf, delete_pdf
 from utils.file_utils import (
-    ensure_output_directory, is_already_processed, save_auto_section
+    ensure_output_directory, is_already_processed,
+    save_auto_section, save_auto_section_raw
 )
-from utils.extractor import extract_structure, process_paper
+from utils.extractor import extract_structure, correct_structure, process_paper
+from utils.structure_parser import clean_structure_output
 
 
 def get_sorted_pdfs() -> list:
@@ -29,14 +31,15 @@ def init_time_report() -> Path:
     return time_file
 
 
-def append_paper_time(time_file: Path, paper_id: str, structure_time: float, call_times: list, paper_total: float):
+def append_paper_time(time_file: Path, paper_id: str, structure_time: float, call_times: list, paper_total: float, correct_time: float = 0.0):
     """Append one paper's timing to the report."""
     with open(time_file, "a", encoding="utf-8") as f:
         f.write(f"## Paper {paper_id} — {paper_total:.1f}s\n\n")
         f.write(f"| # | Section | Time (s) |\n")
         f.write(f"| :--- | :--- | :--- |\n")
         f.write(f"| 1 | Structure extraction | {structure_time:.1f} |\n")
-        for j, call in enumerate(call_times, 2):
+        f.write(f"| 2 | Structure correction | {correct_time:.1f} |\n")
+        for j, call in enumerate(call_times, 3):
             f.write(f"| {j} | {call['section']} | {call['seconds']:.1f} |\n")
         f.write(f"\n---\n\n")
 
@@ -77,16 +80,30 @@ def main():
             pdf_file = upload_pdf(str(pdf_path), client, UPLOAD_POLL_INTERVAL)
 
             # Pass 1: Extract section structure from PDF
-            print("  Extracting section structure...")
-            headers_output, structure_time = extract_structure(pdf_file, client)
-            save_auto_section(base_name, headers_output)
+            print("  Pass 1: Extracting section structure...")
+            raw_output, structure_time = extract_structure(pdf_file, client)
+            save_auto_section_raw(base_name, raw_output)
+
+            # Post-processing: deterministic cleanup
+            cleaned_output = clean_structure_output(raw_output)
+
+            # Pass 1.5: Correct structure against PDF
+            print("  Pass 1.5: Correcting structure...")
+            try:
+                corrected_output, correct_time = correct_structure(pdf_file, cleaned_output, client)
+            except Exception as e:
+                print(f"  Correction failed ({e}), using post-processed output")
+                corrected_output = cleaned_output
+                correct_time = 0.0
+
+            save_auto_section(base_name, corrected_output)
 
             # Pass 2: Extract content per section
             output_dir = ensure_output_directory(base_name)
-            call_times = process_paper(pdf_file, headers_output, output_dir, client)
+            call_times = process_paper(pdf_file, corrected_output, output_dir, client)
             success += 1
 
-            append_paper_time(time_file, base_name, structure_time, call_times, time.time() - paper_start)
+            append_paper_time(time_file, base_name, structure_time, call_times, time.time() - paper_start, correct_time)
 
         except Exception as e:
             print(f"  FAILED: {e}")
