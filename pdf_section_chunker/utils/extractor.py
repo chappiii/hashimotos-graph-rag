@@ -60,22 +60,36 @@ Extract the section headers now:
 
 CORRECTION_PROMPT = """\
 Below is a section structure extracted from this academic research paper. \
-Compare it carefully against the actual PDF.
+Compare it carefully against the actual PDF and check for missing sections.
 
 ### Extracted structure:
 
 {structure}
 
+### Extraction rules (used to produce the structure above):
+
+* The first entry is the paper title.
+* All main section headers and subsections are included, preserving original numbering and hierarchy.
+* Abstract is always a single top-level entry — structured abstract sub-sections \
+(Background, Objectives, Methods, Results, Conclusions) are part of Abstract and not listed separately.
+* Some papers have unlabeled content at the beginning that functions as an Abstract or Introduction — \
+these are intentionally included. Do not remove them.
+* Appendices use only the label (e.g., Appendix A) without the full subtitle.
+
+### Sections that must be excluded:
+
+* Author contributions, funding statements, ethical statements, data availability, conflicts of interest, acknowledgements.
+* Abbreviations, keywords, highlights, graphical abstracts.
+* Figure captions, table titles.
+* Running headers or footers (page numbers, journal names, author names).
+* Supplementary information, supporting information.
+
 ### Task:
 
-* Check if any sections in the PDF are missing from the structure above.
-* Check if any sections are misnamed or do not match the PDF.
-* Check if any sections were included that should be excluded \
-(author contributions, funding, acknowledgements, abbreviations, keywords, \
-supplementary information, supporting information).
-* Abstract must be a single top-level entry — structured abstract sub-sections \
-(Background, Objectives, Methods, Results, Conclusions) should not be listed separately.
-* For appendices, use only the label (e.g., Appendix A) without the full subtitle.
+* Check if any sections in the PDF are missing from the structure above. If so, add them.
+* Only remove a section if you are certain it does not exist anywhere in the PDF.
+* The paper title (first entry) must never be removed.
+* Do not add any sections from the exclusion list above.
 
 Output the corrected section structure using the exact same formatting rules: \
 `*` bullets, 4-space indentation for sub-levels, no bold/italic, no trailing punctuation.
