@@ -1,15 +1,20 @@
 import os
+from pathlib import Path
 from dotenv import load_dotenv
 from google.genai import types
 
 load_dotenv()
 
-PDFS = "../pdfs"
-SECTIONS_DIR = "../paper-sections"
-AUTO_SECTIONS_DIR = "./auto-sections"
-CHUNKS_DIR = "./chunks"
-TIME_DIR = "./time"
-FIGS_TABLES_DIR = "./figs_tables"
+_CONFIG_DIR = Path(__file__).resolve().parent
+_MODULE_DIR = _CONFIG_DIR.parent
+_PROJECT_ROOT = _MODULE_DIR.parent
+
+PDFS = _PROJECT_ROOT / "pdfs"
+SECTIONS_DIR = _PROJECT_ROOT / "paper-sections"
+AUTO_SECTIONS_DIR = _MODULE_DIR / "auto-sections"
+CHUNKS_DIR = _MODULE_DIR / "chunks"
+TIME_DIR = _MODULE_DIR / "time"
+FIGS_TABLES_DIR = _MODULE_DIR / "figs_tables"
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 # GEMINI_MODEL = "gemini-2.5-flash"
