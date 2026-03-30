@@ -9,10 +9,16 @@ METADATA_TEMPLATE = {
     "keywords": []
 }
 
+from pathlib import Path
+
+_CONFIG_DIR = Path(__file__).resolve().parent
+_MODULE_DIR = _CONFIG_DIR.parent
+_PROJECT_ROOT = _MODULE_DIR.parent
+
 OLLAMA_URL = "http://127.0.0.1:11434/api/generate"
-PDFS = "../pdfs"
-OUTPUT_FOLDER = "./extracted_metadata"
-EXPERIMENT_OUTPUT = "./experiments/results"
+PDFS = _PROJECT_ROOT / "pdfs"
+OUTPUT_FOLDER = _MODULE_DIR / "extracted_metadata"
+EXPERIMENT_OUTPUT = _MODULE_DIR / "experiments" / "results"
 
 API_TIMEOUT = 1000
 SLEEP_DURATION = 5
@@ -20,14 +26,14 @@ BATCH_SIZE = 10
 
 # EXTRACTION_MODEL = "gemma2:latest"
 # EXTRACTION_MODEL = "llama3.1:latest"
-# EXTRACTION_MODEL = "qwen3:latest"
-EXTRACTION_MODEL = "mistral:7b"
+EXTRACTION_MODEL = "qwen3:latest"
+# EXTRACTION_MODEL = "mistral:7b"
 # EXTRACTION_MODEL = "deepseek-r1:latest"
 
 # CORRECTION_MODEL = "gemma2:latest"
 # CORRECTION_MODEL = "llama3.1:latest"
-# CORRECTION_MODEL = "qwen3:latest"
-CORRECTION_MODEL = "mistral:7b"
+CORRECTION_MODEL = "qwen3:latest"
+# CORRECTION_MODEL = "mistral:7b"
 # CORRECTION_MODEL = "deepseek-r1:latest"
 
 
