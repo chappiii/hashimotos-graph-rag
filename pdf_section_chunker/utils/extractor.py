@@ -11,23 +11,68 @@ Extract the section structure of this academic research paper.
 ### Instructions:
 
 * Identify the primary title of the paper as the first entry.
-* Extract all main section headers (e.g., Abstract, Introduction, Methods, Results, Discussion, Conclusion, References, Appendix).
-* Extract all subsections and sub-subsections, preserving their original numbering and hierarchy exactly as they appear in the paper (e.g., 1., 2.1., 2.1.1.).
-* Abstract must always be a single top-level entry. Never split a structured abstract into sub-sections (e.g., Background, Objectives, Methods, Results, Conclusions are all part of Abstract — do not list them separately).
-* Some papers may not have explicit headings for early sections such as Abstract or Introduction. If the paper begins with unlabeled content that clearly functions as an Abstract or Introduction, include the appropriate section name in the output.
-* For appendices, use only the label (e.g., Appendix A, Appendix B) without the full subtitle.
-* Output must be a hierarchical bulleted list that precisely reflects the manuscript's organization.
+* Extract all main section headers and all subsections/sub-subsections.
+* Preserve the original numbering and hierarchy exactly as they appear (e.g., 1., 2.1., 2.1.1.).
+* If sections are not numbered, preserve their order and hierarchy based on formatting (e.g., font size, bolding, spacing, line breaks), without adding artificial numbering.
 
-### Formatting rules:
+### Medical Paper Variability (IMPORTANT):
 
-* Every line must start with a `*` bullet (use `*` only, never `-` or other markers).
-* Use 4-space indentation for sub-levels.
-* Do not use bold, italic, or any markdown formatting on section names.
-* Do not include trailing punctuation (colons, periods) on section names.
-* Do not include cross-references (e.g., "(see Appendix E)") in section names.
-* Preserve the original case and numbering of each section name exactly as written in the paper.
+Scientific and medical papers may use different structures depending on study type (e.g., clinical trial, observational study, systematic review, meta-analysis, case report, narrative review).
+You must extract ALL section headers as they appear, without forcing a standard structure. Valid section names may include (but are not limited to):
 
-### Sections to exclude:
+* Background (instead of Introduction)
+* Introduction
+* Materials and Methods / Methods / Patients and Methods
+* Results / Findings
+* Discussion / Interpretation
+* Conclusion / Conclusions / Summary / Implications
+
+Additional valid sections may include:
+
+* Study Design
+* Data Sources
+* Participants / Population
+* Inclusion Criteria / Exclusion Criteria
+* Outcome Measures
+* Statistical Analysis / Statistical Methods
+* Ethics Approval / Ethical Considerations
+* Trial Registration / Registration / Clinical Trial Registration
+* Case Presentation
+* Clinical Findings
+* Intervention / Treatment
+* Follow-up
+* Search Strategy (systematic reviews)
+* Data Extraction
+* Quality Assessment / Risk of Bias
+
+### Abstract Handling (STRICT):
+
+* Abstract must always be a single top-level entry.
+* If the abstract is structured (e.g., Background, Methods, Results, Conclusions), treat it as ONE section.
+* Do NOT list structured abstract components as separate subsections, even if visually separated.
+
+### Implicit Sections:
+
+* Some papers may not explicitly label early sections (e.g., Abstract or Introduction).
+* If unlabeled text clearly functions as Abstract or Introduction, include the appropriate section name.
+
+### Appendix Handling:
+
+* For appendices, include only the label (e.g., Appendix A, Appendix B).
+* Do not include appendix subtitles.
+
+### Robustness Rules (CRITICAL):
+
+* Only extract section headers that are explicitly present in the document.
+* Do NOT infer or invent section names.
+* Do NOT normalize, rename, merge, or split section titles.
+* Each section must remain exactly as it appears in the original document.
+* Preserve the exact original wording, case, and numbering.
+* Do not remove a section simply because it is uncommon or unexpected.
+* If it clearly appears as a section header in the document, it must be preserved.
+* Treat visually distinct lines (e.g., bold, uppercase, or isolated lines) as potential headers even if unnumbered.
+
+### Sections to Exclude:
 
 * Author contributions, funding statements, ethical statements, data availability, conflicts of interest, acknowledgements.
 * Abbreviations, keywords, highlights, graphical abstracts.
@@ -35,7 +80,21 @@ Extract the section structure of this academic research paper.
 * Running headers or footers (page numbers, journal names, author names).
 * Supplementary information, supporting information.
 
-### Example output:
+### Additional Rules:
+
+* References, Bibliography, or Works Cited must always be included if present as a top-level section.
+* Do NOT treat figure captions or table titles as section headers, even if they appear in bold or large font.
+
+### Formatting Rules:
+
+* Every line must start with a `*` bullet (use `*` only).
+* Use 4-space indentation for sub-levels.
+* Do not use bold, italic, or markdown formatting.
+* Do not include trailing punctuation (colons, periods).
+* Do not include cross-references (e.g., "(see Appendix E)").
+* Preserve original case and numbering exactly.
+
+### Example Output (Order must follow the document exactly, even if uncommon):
 
 * Main Title of the Paper
 * Abstract
@@ -60,7 +119,7 @@ Extract the section headers now:
 
 CORRECTION_PROMPT = """\
 Below is a section structure extracted from this academic research paper. \
-Compare it carefully against the actual PDF and check for missing sections.
+Compare it carefully against the actual PDF and check for missing or incorrect sections.
 
 ### Extracted structure:
 
@@ -76,6 +135,18 @@ Compare it carefully against the actual PDF and check for missing sections.
 these are intentionally included. Do not remove them.
 * Appendices use only the label (e.g., Appendix A) without the full subtitle.
 
+### Medical section variability:
+
+Section names vary across medical papers depending on study type \
+(e.g., clinical trial, systematic review, meta-analysis, case report).
+
+Valid section names may include (but are not limited to): Background, Findings, \
+Interpretation, Case Presentation, Statistical Analysis, Trial Registration, \
+Study Design, Search Strategy, Quality Assessment, etc.
+
+* Verify that no valid sections were mistakenly excluded due to naming variations.
+* If such sections exist in the PDF, they must be added.
+
 ### Sections that must be excluded:
 
 * Author contributions, funding statements, ethical statements, data availability, conflicts of interest, acknowledgements.
@@ -88,8 +159,9 @@ these are intentionally included. Do not remove them.
 
 * Check if any sections in the PDF are missing from the structure above. If so, add them.
 * Only remove a section if you are certain it does not exist anywhere in the PDF.
-* The paper title (first entry) must never be removed.
 * Do not add any sections from the exclusion list above.
+* Do NOT normalize, rename, merge, or split section titles. Preserve exact wording, case, and numbering.
+* The paper title (first entry) must never be removed.
 
 Output the corrected section structure using the exact same formatting rules: \
 `*` bullets, 4-space indentation for sub-levels, no bold/italic, no trailing punctuation.
