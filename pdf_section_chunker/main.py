@@ -1,9 +1,10 @@
+import json
 import sys
 import time
 from datetime import datetime
 from pathlib import Path
 from config.section_chunker_config import (
-    PDFS, GEMINI_API_KEY, UPLOAD_POLL_INTERVAL, SKIP_EXISTING, TIME_DIR
+    PDFS, GEMINI_API_KEY, UPLOAD_POLL_INTERVAL, SKIP_EXISTING, TIME_DIR, METADATA_DIR
 )
 from utils.gemini_client import configure_gemini, upload_pdf, delete_pdf
 from utils.file_utils import (
@@ -12,6 +13,17 @@ from utils.file_utils import (
 )
 from utils.extractor import extract_structure, correct_structure, process_paper
 from utils.structure_parser import clean_structure_output
+
+
+def load_paper_titles() -> dict[str, str]:
+    """Load paper titles from metadata extruction. Returns {paper_id: title}."""
+    titles = {}
+    for part_file in Path(METADATA_DIR).glob("part-*.json"):
+        with open(part_file, encoding="utf-8") as f:
+            data = json.load(f)
+        for paper in data["papers"]:
+            titles[str(paper["paper_id"])] = paper["title"]
+    return titles
 
 
 def get_sorted_pdfs() -> list:
@@ -57,6 +69,7 @@ def main():
         sys.exit(1)
 
     client = configure_gemini(GEMINI_API_KEY)
+    paper_titles = load_paper_titles()
     pdfs = get_sorted_pdfs()
     total = len(pdfs)
     print(f"\nPDF Section Extraction — {total} papers found\n")
@@ -79,9 +92,11 @@ def main():
         try:
             pdf_file = upload_pdf(str(pdf_path), client, UPLOAD_POLL_INTERVAL)
 
+            title = paper_titles[base_name]
+
             # Pass 1: Extract section structure from PDF
             print("  Pass 1: Extracting section structure...")
-            raw_output, structure_time = extract_structure(pdf_file, client)
+            raw_output, structure_time = extract_structure(pdf_file, client, title)
             save_auto_section_raw(base_name, raw_output)
 
             # Post-processing: deterministic cleanup
@@ -90,7 +105,7 @@ def main():
             # Pass 1.5: Correct structure against PDF
             print("  Pass 1.5: Correcting structure...")
             try:
-                corrected_output, correct_time = correct_structure(pdf_file, cleaned_output, client)
+                corrected_output, correct_time = correct_structure(pdf_file, cleaned_output, client, title)
             except Exception as e:
                 print(f"  Correction failed ({e}), using post-processed output")
                 corrected_output = cleaned_output

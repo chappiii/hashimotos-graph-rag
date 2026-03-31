@@ -5,12 +5,14 @@ from utils.structure_parser import parse_structure_from_output
 from utils.file_utils import sanitize_filename, save_chunk
 
 
-STRUCTURE_PROMPT = """\
+_STRUCTURE_PROMPT_TEMPLATE = """\
+The title of this paper is: "{title}"
+
 Extract the section structure of this academic research paper.
 
 ### Instructions:
 
-* Identify the primary title of the paper as the first entry.
+* Use the provided title above as the first entry in your output. Do not re-identify or modify it.
 * Extract all main section headers and all subsections/sub-subsections.
 * Preserve the original numbering and hierarchy exactly as they appear (e.g., 1., 2.1., 2.1.1.).
 * If sections are not numbered, preserve their order and hierarchy based on formatting (e.g., font size, bolding, spacing, line breaks), without adding artificial numbering.
@@ -117,7 +119,7 @@ Extract the section headers now:
 """
 
 
-CORRECTION_PROMPT = """\
+_CORRECTION_PROMPT_TEMPLATE = """\
 Below is a section structure extracted from this academic research paper. \
 Compare it carefully against the actual PDF and check for missing or incorrect sections.
 
@@ -127,7 +129,7 @@ Compare it carefully against the actual PDF and check for missing or incorrect s
 
 ### Extraction rules (used to produce the structure above):
 
-* The first entry is the paper title.
+* The first entry is the paper title: "{title}" — injected from metadata. Do not modify or remove it.
 * All main section headers and subsections are included, preserving original numbering and hierarchy.
 * Abstract is always a single top-level entry — structured abstract sub-sections \
 (Background, Objectives, Methods, Results, Conclusions) are part of Abstract and not listed separately.
@@ -161,7 +163,7 @@ Study Design, Search Strategy, Quality Assessment, etc.
 * Only remove a section if you are certain it does not exist anywhere in the PDF.
 * Do not add any sections from the exclusion list above.
 * Do NOT normalize, rename, merge, or split section titles. Preserve exact wording, case, and numbering.
-* The paper title (first entry) must never be removed.
+* The paper title (first entry) is "{title}" — injected from metadata. Do not modify or remove it.
 
 Output the corrected section structure using the exact same formatting rules: \
 `*` bullets, 4-space indentation for sub-levels, no bold/italic, no trailing punctuation.
@@ -170,12 +172,13 @@ If the structure is already correct, output it unchanged.
 """
 
 
-def extract_structure(pdf_file, client) -> tuple[str, float]:
+def extract_structure(pdf_file, client, title: str) -> tuple[str, float]:
     """Pass 1: Extract section structure from PDF. Returns (text, elapsed_seconds)."""
+    prompt = _STRUCTURE_PROMPT_TEMPLATE.format(title=title)
     start = time.time()
     response = client.models.generate_content(
         model=GEMINI_MODEL,
-        contents=[pdf_file, STRUCTURE_PROMPT],
+        contents=[pdf_file, prompt],
         config=types.GenerateContentConfig(safety_settings=SAFETY_SETTINGS)
     )
     elapsed = time.time() - start
@@ -189,9 +192,9 @@ def extract_structure(pdf_file, client) -> tuple[str, float]:
     raise ValueError(f"Structure extraction failed (finish_reason={reason})")
 
 
-def correct_structure(pdf_file, cleaned_structure: str, client) -> tuple[str, float]:
+def correct_structure(pdf_file, cleaned_structure: str, client, title: str) -> tuple[str, float]:
     """Pass 1.5: Correct extracted structure against PDF. Returns (text, elapsed_seconds)."""
-    prompt = CORRECTION_PROMPT.format(structure=cleaned_structure)
+    prompt = _CORRECTION_PROMPT_TEMPLATE.format(structure=cleaned_structure, title=title)
     start = time.time()
     response = client.models.generate_content(
         model=GEMINI_MODEL,

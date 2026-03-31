@@ -11,6 +11,7 @@ _PROJECT_ROOT = _MODULE_DIR.parent
 
 PDFS = _PROJECT_ROOT / "pdfs"
 SECTIONS_DIR = _PROJECT_ROOT / "paper-sections"
+METADATA_DIR = _PROJECT_ROOT / "extract_metadata" / "GT_grouped"
 AUTO_SECTIONS_DIR = _MODULE_DIR / "auto-sections"
 CHUNKS_DIR = _MODULE_DIR / "chunks"
 TIME_DIR = _MODULE_DIR / "time"
