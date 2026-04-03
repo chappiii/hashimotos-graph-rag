@@ -28,7 +28,7 @@ pdf_section_chunker/chunks/
 chunk_pdf_section/
 
 # Entity and relation extraction
-extract_entity_relation/
+extract_entity_relation/extracted_entity_relations/
 
 
 *.zip

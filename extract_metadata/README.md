@@ -107,8 +107,7 @@ LLaMA→LLaMA, Qwen(small)→LLaMA, Mistral→LLaMA, DeepSeek-R1→LLaMA, Qwen�
 ## Running
 
 ```bash
-cd extract_metadata
-python main.py
+uv run python -m extract_metadata.main
 ```
 
 Requires Ollama running locally with the target models pulled.

@@ -114,13 +114,11 @@ We experimented with GROBID, docling, and local Ollama models before settling on
 ## Usage
 
 ```bash
-cd pdf_section_chunker
-
 # Extract sections into chunks/
-python main.py
+uv run python -m pdf_section_chunker.main
 
 # Extract figures and tables into figs_tables/
-python extract_figs_tables.py
+uv run python -m pdf_section_chunker.extract_figs_tables
 ```
 
 ### Requirements
