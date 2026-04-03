@@ -8,7 +8,7 @@ Automatically extracts structured content from research PDFs using the Gemini. E
 
 ### 1. Structure extraction (Pass 1)
 
-The pipeline uploads each PDF to the Gemini File API and prompts the model to extract the section hierarchy — title, headers, and subheaders.
+The pipeline uploads each PDF to the Gemini File API and prompts the model to extract the section hierarchy — title, headers, and subheaders. The paper title is injected from pre-extracted metadata (`extract_metadata`) so the model doesn't need to identify it — it uses the provided title as the first entry directly.
 
 ```
 * Paper Title
@@ -34,7 +34,7 @@ Deterministic cleanup applied to the raw structure before verification:
 
 ### 3. Structure correction (Pass 1.5)
 
-The cleaned structure is sent back to the model alongside the PDF for comparison. The model checks for missing, extra, or misnamed sections and outputs a corrected structure. Early testing showed that a single-shot extraction (Pass 1 alone) would miss sections or rename them — especially in longer, non-standard papers like clinical guidelines. A verification pass turns this into a self-correcting process.
+The cleaned structure is sent back to the model alongside the PDF for comparison. The model checks for missing, extra, or misnamed sections and outputs a corrected structure. The injected title is anchored here as well — the correction prompt explicitly marks it as metadata-provided and not to be modified. Early testing showed that a single-shot extraction (Pass 1 alone) would miss sections or rename them — especially in longer, non-standard papers like clinical guidelines. A verification pass turns this into a self-correcting process.
 
 
 ### 4. Content extraction (Pass 2)
