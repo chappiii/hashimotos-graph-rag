@@ -1,6 +1,6 @@
 import os
 import re
-from config.section_chunker_config import CHUNKS_DIR, AUTO_SECTIONS_DIR
+from pdf_section_chunker.config.section_chunker_config import CHUNKS_DIR, AUTO_SECTIONS_DIR
 
 
 def ensure_output_directory(base_name: str) -> str:

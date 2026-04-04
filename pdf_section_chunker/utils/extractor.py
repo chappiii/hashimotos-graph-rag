@@ -1,8 +1,8 @@
 import time
 from google.genai import types
-from config.section_chunker_config import GEMINI_MODEL, SAFETY_SETTINGS
-from utils.structure_parser import parse_structure_from_output
-from utils.file_utils import sanitize_filename, save_chunk
+from pdf_section_chunker.config.section_chunker_config import GEMINI_MODEL, SAFETY_SETTINGS
+from pdf_section_chunker.utils.structure_parser import parse_structure_from_output
+from pdf_section_chunker.utils.file_utils import sanitize_filename, save_chunk
 
 
 _STRUCTURE_PROMPT_TEMPLATE = """\

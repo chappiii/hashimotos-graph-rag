@@ -3,16 +3,16 @@ import sys
 import time
 from datetime import datetime
 from pathlib import Path
-from config.section_chunker_config import (
+from pdf_section_chunker.config.section_chunker_config import (
     PDFS, GEMINI_API_KEY, UPLOAD_POLL_INTERVAL, SKIP_EXISTING, TIME_DIR, METADATA_DIR
 )
-from utils.gemini_client import configure_gemini, upload_pdf, delete_pdf
-from utils.file_utils import (
+from pdf_section_chunker.utils.gemini_client import configure_gemini, upload_pdf, delete_pdf
+from pdf_section_chunker.utils.file_utils import (
     ensure_output_directory, is_already_processed,
     save_auto_section, save_auto_section_raw
 )
-from utils.extractor import extract_structure, correct_structure, process_paper
-from utils.structure_parser import clean_structure_output
+from pdf_section_chunker.utils.extractor import extract_structure, correct_structure, process_paper
+from pdf_section_chunker.utils.structure_parser import clean_structure_output
 
 
 def load_paper_titles() -> dict[str, str]:

@@ -4,7 +4,7 @@ from pathlib import Path
 
 from google.genai import types
 
-from config.section_chunker_config import (
+from pdf_section_chunker.config.section_chunker_config import (
     FIGS_TABLES_DIR,
     GEMINI_API_KEY,
     GEMINI_MODEL,
@@ -15,7 +15,7 @@ from config.section_chunker_config import (
     TABLE_SCHEMA,
     UPLOAD_POLL_INTERVAL,
 )
-from utils.gemini_client import configure_gemini, delete_pdf, upload_pdf
+from pdf_section_chunker.utils.gemini_client import configure_gemini, delete_pdf, upload_pdf
 
 OUTPUT_DIR = Path(FIGS_TABLES_DIR)
 
