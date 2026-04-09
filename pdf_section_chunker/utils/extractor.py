@@ -283,8 +283,9 @@ def process_paper(pdf_file, headers_output: str, output_dir: str, client) -> lis
     headers = parse_structure_from_output(headers_output)
     call_times = []
 
-    # No real sections found — extract and save full text as a single chunk
-    if len(headers) <= 1:
+    # No content-bearing sections found — extract and save full text as a single chunk
+    content_sections = [h for h in headers[1:] if h["header"].lower() not in {"references", "bibliography", "works cited"}]
+    if len(content_sections) == 0:
         full_text_prompts = [
             (
                 "You are an expert document analyst helping with academic research. "
