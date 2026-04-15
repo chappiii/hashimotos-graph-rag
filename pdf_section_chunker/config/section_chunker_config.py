@@ -9,7 +9,7 @@ _CONFIG_DIR = Path(__file__).resolve().parent
 _MODULE_DIR = _CONFIG_DIR.parent
 _PROJECT_ROOT = _MODULE_DIR.parent
 
-PDFS = _PROJECT_ROOT / "pdfs"
+PDFS = _PROJECT_ROOT / "data" / "pdfs"
 SECTIONS_DIR = _PROJECT_ROOT / "paper-sections"
 METADATA_DIR = _PROJECT_ROOT / "extract_metadata" / "GT_grouped"
 AUTO_SECTIONS_DIR = _MODULE_DIR / "auto-sections"
