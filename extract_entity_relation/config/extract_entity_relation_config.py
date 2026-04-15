@@ -8,7 +8,7 @@ _CONFIG_DIR = Path(__file__).resolve().parent
 _MODULE_DIR = _CONFIG_DIR.parent
 _PROJECT_ROOT = _MODULE_DIR.parent
 
-DATA_DIR = _PROJECT_ROOT / "pdf_section_chunker/chunks-2pass-corr"
+DATA_DIR = _PROJECT_ROOT / "pdf_section_chunker/chunks"
 OUTPUT_DIR = _MODULE_DIR / "extracted_entity_relations"
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")

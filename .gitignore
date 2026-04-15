@@ -7,9 +7,7 @@ __pycache__
 .env.local
 
 # Data
-/pdfs
-/p
-/paper-sections
+/data
 
 
 # Metadata extraction
@@ -25,10 +23,15 @@ extract_metadata/notebooks/pdf-info.json
 
 # chunk pdf
 pdf_section_chunker/chunks/
-chunk_pdf_section/
+pdf_section_chunker/auto-sections/
+pdf_section_chunker/eval-framework/
+pdf_section_chunker/time/
+pdf_section_chunker/figs_tables/
 
 # Entity and relation extraction
 extract_entity_relation/extracted_entity_relations/
 
 
 *.zip
+
+/spa
