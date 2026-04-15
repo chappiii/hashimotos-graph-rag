@@ -56,6 +56,10 @@ Your task is to identify and extract relationships between the provided list of 
 | recommended by guideline              | A treatment is officially recommended by a guideline.                 | Levothyroxine → recommended_by_guideline → ATA               | Treatment, Guideline authority (e.g., ATA, NICE), Year/version, Evidence grade (if available)                       |
 | based on small sample                 | A study has sample size limitations.                                  | P23 → based_on_small_sample → TRUE                           | Study ID, Sample size, Statistical power, Acknowledged limitation (Yes/No), Impact on conclusions                   |
 | relapses into                         | A condition returns after remission.                                  | Remission → relapses_into → Hypothyroidism                   | Initial condition, Relapsed condition, Time to relapse, Risk factors (if known), Recurrence rate                    |
+| has genetic variant                   | A gene carries a variant associated with disease risk or function.    | CTLA-4 → rs231775 → HT susceptibility                        | Gene, Variant ID, Associated condition, Effect direction (risk/protective), Effect size (OR/β if known)             |
+| alters microbiota                     | A condition or intervention shifts microbial abundance.               | HT → Firmicutes (depleted); Levothyroxine → Bacteroidetes    | Source (condition/intervention), Target taxon, Direction (enriched/depleted), Magnitude (if known), Sample source   |
+| reported in study                     | A claim or finding is documented in a specific study.                 | anti-TPO ↔ HT → reported_in_study → Cooper2021               | Claim/entity, Study ID, Sample size, Confidence level (if stated)                                                   |
+| has evidence grade                    | Strength of evidence for a claim or recommendation.                   | Levothyroxine → Grade A (ATA 2023)                           | Claim/recommendation, Evidence grade (A/B/C/D or GRADE level), Grading system (GRADE/USPSTF), Source guideline      |
 ---
 
 {entities}
