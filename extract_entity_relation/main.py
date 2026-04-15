@@ -69,6 +69,13 @@ def main():
 
         for chunk_file in chunk_files:
             chunk_name = chunk_file.rsplit(".", 1)[0]
+            entity_output = os.path.join(paper_output_dir, f"{chunk_name}_entities.json")
+            relation_output = os.path.join(paper_output_dir, f"{chunk_name}_relations.json")
+
+            if os.path.exists(entity_output) and os.path.exists(relation_output):
+                print(f"  Skipping (already processed): {chunk_name}")
+                continue
+
             section_text = read_content(os.path.join(paper_path, chunk_file))
 
             if not section_text:
@@ -78,9 +85,8 @@ def main():
                 print(f"  Extracting entities: {chunk_name}")
                 entity_prompt = build_entity_prompt(section_text)
                 entity_response = generate_content(model_tag, entity_prompt)
-                entity_output = os.path.join(paper_output_dir, f"{chunk_name}_entities.json")
                 save_result(entity_response, entity_output)
-                time.sleep(5)
+                # time.sleep(5)
 
                 entities = load_entities_from_json(entity_output)
                 if not entities:
@@ -90,9 +96,8 @@ def main():
                 print(f"  Extracting relations: {chunk_name}")
                 relation_prompt = build_relation_prompt(section_text, entities)
                 relation_response = generate_content(model_tag, relation_prompt)
-                relation_output = os.path.join(paper_output_dir, f"{chunk_name}_relations.json")
                 save_result(relation_response, relation_output)
-                time.sleep(5)
+                # time.sleep(5)
 
             except Exception as e:
                 print(f"    FAILED: {chunk_name} — {e}")
