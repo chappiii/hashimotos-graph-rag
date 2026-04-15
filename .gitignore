@@ -30,6 +30,7 @@ pdf_section_chunker/figs_tables/
 
 # Entity and relation extraction
 extract_entity_relation/extracted_entity_relations/
+extract_entity_relation/define-schema/
 
 
 *.zip
