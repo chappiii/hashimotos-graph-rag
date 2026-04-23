@@ -1,18 +1,44 @@
+import asyncio
+
 from google import genai
 from google.genai import types as genai_types
 import anthropic
-from openai import OpenAI
+from openai import AsyncOpenAI
 
 from extract_entity_relation.config.extract_entity_relation_config import (
     GEMINI_MODEL, CLAUDE_MODEL, OPENAI_MODEL,
     GEMINI_API_KEY, ANTHROPIC_API_KEY, OPENAI_API_KEY,
-    MAX_OUTPUT_TOKENS,
+    MAX_OUTPUT_TOKENS, MAX_CONCURRENCY, MAX_RETRIES
 )
 
 
-def call_gemini(prompt: str) -> str:
+# limit total in-flight API calls across all papers/chunks
+_semaphore = asyncio.Semaphore(MAX_CONCURRENCY)
+
+
+async def _retry(fn, *args):
+    """Retry with exponential backoff on rate-limit"""
+    for attempt in range(MAX_RETRIES):
+        try:
+            return await fn(*args)
+        except Exception as e:
+            err_str = str(e).lower()
+            is_rate_limit = "429" in err_str or "rate" in err_str or "resource" in err_str
+            if not is_rate_limit or attempt == MAX_RETRIES - 1:
+                raise
+            wait = 2 ** (attempt + 1)
+            print(f"    Rate limited, retrying in {wait}s... (attempt {attempt + 1})")
+            await asyncio.sleep(wait)
+
+
+async def call_gemini(prompt: str) -> str:
+    async with _semaphore:
+        return await _retry(_call_gemini_inner, prompt)
+
+
+async def _call_gemini_inner(prompt: str) -> str:
     client = genai.Client(api_key=GEMINI_API_KEY)
-    response = client.models.generate_content(
+    response = await client.aio.models.generate_content(
         model=GEMINI_MODEL,
         contents=prompt,
         config=genai_types.GenerateContentConfig(temperature=0),
@@ -25,22 +51,32 @@ def call_gemini(prompt: str) -> str:
     raise ValueError(f"Gemini generation failed (finish_reason={reason})")
 
 
-def call_claude(prompt: str) -> str:
-    client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
+async def call_claude(prompt: str) -> str:
+    async with _semaphore:
+        return await _retry(_call_claude_inner, prompt)
+
+
+async def _call_claude_inner(prompt: str) -> str:
+    client = anthropic.AsyncAnthropic(api_key=ANTHROPIC_API_KEY)
     chunks = []
-    with client.messages.stream(
+    async with client.messages.stream(
         model=CLAUDE_MODEL,
         max_tokens=MAX_OUTPUT_TOKENS,
         messages=[{"role": "user", "content": prompt}],
     ) as stream:
-        for text in stream.text_stream:
+        async for text in stream.text_stream:
             chunks.append(text)
     return "".join(chunks)
 
 
-def call_openai(prompt: str) -> str:
-    client = OpenAI(api_key=OPENAI_API_KEY)
-    r = client.chat.completions.create(
+async def call_openai(prompt: str) -> str:
+    async with _semaphore:
+        return await _retry(_call_openai_inner, prompt)
+
+
+async def _call_openai_inner(prompt: str) -> str:
+    client = AsyncOpenAI(api_key=OPENAI_API_KEY)
+    r = await client.chat.completions.create(
         model=OPENAI_MODEL,
         messages=[{"role": "user", "content": prompt}],
         response_format={"type": "json_object"},

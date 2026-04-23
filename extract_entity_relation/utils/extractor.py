@@ -3,9 +3,9 @@ from extract_entity_relation.prompts.extract_relation import extract_relation_pr
 from extract_entity_relation.utils.clients import MODELS
 
 
-def generate_content(model_tag: str, prompt: str) -> str:
+async def generate_content(model_tag: str, prompt: str) -> str:
     _, fn = MODELS[model_tag]
-    return fn(prompt)
+    return await fn(prompt)
 
 
 def build_entity_prompt(paper_text: str) -> str:

@@ -23,3 +23,6 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 # --- Settings ---
 MAX_OUTPUT_TOKENS = 32000
+MAX_CONCURRENCY = 10  # max simultaneous API calls
+RAW_LOG_DIR = _MODULE_DIR / "raw_responses"
+MAX_RETRIES = 3
