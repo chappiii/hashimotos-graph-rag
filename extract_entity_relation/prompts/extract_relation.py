@@ -10,6 +10,8 @@ Your task is to identify and extract relationships between the provided list of 
 3.  The relation_type must match one of the types listed in the table below.
 4.  Provide the exact `evidence` sentence from the text that supports the relationship.
 5.  Return the output in the specified JSON format.
+6.  `evidence` must be the verbatim sentence(s) from the text. No truncation, no ellipsis ("..."), no paraphrase — copy in full regardless of length.
+
 ***Relationships table : ***
 
 | Relationship Type                     | Description                                                           | Example                                                      | Key Properties                                                                                                      |

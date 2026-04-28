@@ -47,6 +47,7 @@ For each extracted entity, return:
 - All key properties are required. Leave as null or blank if unknown, but do not omit fields.
 - Use only values that are explicitly stated or **clearly inferable** (e.g., basic arithmetic).
 - **DO NOT** include any other text, notes or comments in the output.
+- `evidence` must be the verbatim sentence(s) from the text. No truncation, no ellipsis ("..."), no paraphrase — copy in full regardless of length.
 
 ## Numerical Data Handling:
 - If a percentage is given with a total (e.g., "49.2%" and "N=120"), calculate the absolute count (e.g., "59 (49.2%)").
