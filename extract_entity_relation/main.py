@@ -63,22 +63,28 @@ async def process_chunk(
         return True
 
     try:
-        # entities extraction
-        print(f"  [Paper {paper_id}] Extracting entities: {chunk_name}")
-        entity_prompt = build_entity_prompt(section_text)
-        entity_response = await generate_content(model_tag, entity_prompt)
-        save_result(entity_response, entity_output)
+        # entities extraction (skip if already done)
+        if os.path.exists(entity_output):
+            print(f"  [Paper {paper_id}] Entities already exist, skipping: {chunk_name}")
+        else:
+            print(f"  [Paper {paper_id}] Extracting entities: {chunk_name}")
+            entity_prompt = build_entity_prompt(section_text)
+            entity_response = await generate_content(model_tag, entity_prompt)
+            save_result(entity_response, entity_output)
 
         entities = load_entities_from_json(entity_output)
         if not entities:
             print(f"    [Paper {paper_id}] No entities found, skipping relations.")
             return True
 
-        # relation extraction
-        print(f"  [Paper {paper_id}] Extracting relations: {chunk_name}")
-        relation_prompt = build_relation_prompt(section_text, entities)
-        relation_response = await generate_content(model_tag, relation_prompt)
-        save_result(relation_response, relation_output)
+        # relation extraction (skip if already done)
+        if os.path.exists(relation_output):
+            print(f"  [Paper {paper_id}] Relations already exist, skipping: {chunk_name}")
+        else:
+            print(f"  [Paper {paper_id}] Extracting relations: {chunk_name}")
+            relation_prompt = build_relation_prompt(section_text, entities)
+            relation_response = await generate_content(model_tag, relation_prompt)
+            save_result(relation_response, relation_output)
 
         return True
     except Exception as e:
