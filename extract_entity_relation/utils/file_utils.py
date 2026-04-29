@@ -37,8 +37,6 @@ def _remove_think_tags(text: str) -> str:
 
 def _extract_json_from_response(text: str) -> dict | list | None:
     match = re.search(r"```json\s*(.*?)\s*```", text, re.DOTALL)
-    if not match:
-        match = re.search(r"```json\s*(.*)", text, re.DOTALL)
     json_string = match.group(1).strip() if match else text.strip()
 
     if not json_string:
@@ -72,9 +70,7 @@ def load_entities_from_json(file_path: str) -> list[dict]:
 
 def _save_raw_response(response_text: str, output_path: str) -> None:
     """Save the raw LLM response for debugging"""
-    from extract_entity_relation.config.extract_entity_relation_config import RAW_LOG_DIR
-
-    from extract_entity_relation.config.extract_entity_relation_config import OUTPUT_DIR
+    from extract_entity_relation.config.extract_entity_relation_config import RAW_LOG_DIR, OUTPUT_DIR
 
     os.makedirs(RAW_LOG_DIR, exist_ok=True)
     rel = os.path.relpath(output_path, OUTPUT_DIR)

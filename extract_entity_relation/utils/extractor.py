@@ -3,13 +3,13 @@ from extract_entity_relation.prompts.extract_relation import extract_relation_pr
 from extract_entity_relation.utils.clients import MODELS
 
 
-async def generate_content(model_tag: str, prompt: str) -> str:
+def generate_content(model_tag: str, prompt: str) -> str:
     _, fn = MODELS[model_tag]
-    return await fn(prompt)
+    return fn(prompt)
 
 
 def build_entity_prompt(paper_text: str) -> str:
-    return extract_entity_prompt + f'\n"""\n{paper_text}\n"""'
+    return extract_entity_prompt.format(text=paper_text)
 
 
 def build_relation_prompt(paper_text: str, entities: list[dict]) -> str:
