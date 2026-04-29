@@ -1,23 +1,19 @@
 extract_entity_prompt = """
-You are an expert biomedical information extractor.
+You are a top-tier biomedical information extraction algorithm specialized in identifying clinical and scientific entities for knowledge graph construction.
 
-Your task is to extract all relevant entities from the given clinical or scientific text according to the following predefined **Entity Types** and their **Key Properties**.
+Your task is to extract all relevant entities from the given text according to the predefined Entity Schema below.
 
 For each extracted entity, return:
+- `entity_type` — must EXACTLY match a label from the schema
+- `canonical_name` — the standard / normalized name of the entity
+- `key_properties` — all properties defined for that entity type (use `null` for unknown values; do NOT omit fields)
+- `evidence` — a single verbatim sentence from the text supporting the extraction
 
-- The entity **type** (must exactly match one of the types from the list below)
-- The **canonical name** (normalized name of the entity)
-- All required **Key Properties (metadata)**
-- The exact **evidence sentence** from the text that supports the extraction
-
-**Entity Types and Key Properties** are provided below. Ensure that the values are grounded in the evidence sentence or are **clearly inferable by logic or math** (e.g., group percentages summing to 100%).
-
-
-**You must use the following entity schema**:
+## Entity Schema
 
 | Entity Type                          | Description                                                                | Examples                                                                             | Key Properties                                                                                                                       |
 | ------------------------------------ | -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------ |
-| Diseases & Conditions                | Non-cancerous health conditions and diseases, often chronic or autoimmune. | Hashimoto’s Thyroiditis, Autoimmune Thyroid Disease, Hypothyroidism, Obesity         | Disease name, Autoimmune (Boolean), Chronicity (chronic/acute), Organ/System affected, Endocrine-related (Boolean),                  |
+| Diseases & Conditions                | Non-cancerous health conditions and diseases, often chronic or autoimmune. | Hashimoto's Thyroiditis, Autoimmune Thyroid Disease, Hypothyroidism, Obesity         | Disease name, Autoimmune (Boolean), Chronicity (chronic/acute), Organ/System affected, Endocrine-related (Boolean),                  |
 | Cancer Types / Malignancies          | Malignant neoplasms, mostly lymphomas or thyroid-related cancers.          | Diffuse Large B-cell Lymphoma, MALT Lymphoma, Hodgkin Lymphoma, Thyroid Malignancies | Cancer subtype, Cell lineage (B-cell/T-cell), Aggressiveness (indolent/aggressive), Primary site, Histological subtype,              |
 | Symptoms & Clinical Findings         | Observed symptoms and clinical presentation features.                      | Fatigue, Weight gain, Palpable Mass in Neck, Hoarseness, B Symptoms                  | Symptom name, Symptom category (general/systemic/local), Duration (acute/chronic), Severity (if known), Location (if applicable),    |
 | Hormones, Biomarkers & Antibodies    | Substances measured in blood or tissues for diagnosis or monitoring.       | TSH, Anti-TPO, FT4, Vitamin D, Triglycerides                                         | Molecule name, Type (hormone/antibody/vitamin/lipid), Associated condition, Reference range, Direction of abnormality (e.g., ↑ TSH), |
@@ -41,40 +37,56 @@ For each extracted entity, return:
 | Study                                | A research study cited as the evidence source for a claim.                 | Cooper et al. 2021, NHANES III, Mendelian randomization analysis                     | Study ID/citation, Study type (RCT/cohort/MR/meta-analysis), Sample size, Year, Authors, Journal                                     |
 | Guideline                            | Clinical practice guidelines or consensus statements.                      | ATA 2023, NICE NG145, ETA guideline                                                  | Guideline name, Issuing body (ATA/NICE/ETA), Year, Recommendation strength, Target condition                                         |
 
-## Extraction Rules and Restrictions:
+## Extraction Rules
 
-- Only extract entities defined in the schema. Do not invent or hallucinate.
-- All key properties are required. Leave as null or blank if unknown, but do not omit fields.
-- Use only values that are explicitly stated or **clearly inferable** (e.g., basic arithmetic).
-- **DO NOT** include any other text, notes or comments in the output.
-- `evidence` must be the verbatim sentence(s) from the text. No truncation, no ellipsis ("..."), no paraphrase — copy in full regardless of length.
+1. **Schema adherence**
+   1.1 Only extract entities whose `entity_type` matches a label in the schema EXACTLY. Do not invent new types.
+   1.2 All `key_properties` listed for an entity type must appear. Use `null` for unknown values; do not omit fields.
 
-## Numerical Data Handling:
-- If a percentage is given with a total (e.g., "49.2%" and "N=120"), calculate the absolute count (e.g., "59 (49.2%)").
-- Always include both percentage and count when possible.
-- For two complementary groups (e.g., A vs. B), you may infer the second group's value by subtracting from 100%.
-- Do not assign numbers to incorrect groups — match only based on clear, direct evidence.
-- Preserve all statistics as stated, including means, SD, p-values, and units (e.g., "47.1 ± 14.8 y", "p = 0.426").
-- Do not round or approximate unless necessary for clarity, and only if it can be precisely inferred.
+2. **Grounding**
+   2.1 Values must be explicitly stated in the text OR clearly inferable by simple logic/math (e.g., complementary group percentages summing to 100%).
+   2.2 If an abbreviation is NOT explicitly defined or unambiguous in the chunk (e.g., "AS" appearing without context), DO NOT extract it.
+   2.3 If you are uncertain about an entity's `entity_type`, DO NOT extract it. Better to omit than to misclassify.
 
-Example Output Format:
+3. **Evidence rules** (strict)
+   3.1 `evidence` MUST be a single contiguous sentence copied verbatim from the text.
+   3.2 Do NOT use ellipsis ("...") under any circumstances.
+   3.3 Do NOT paraphrase, summarize, or stitch fragments from non-adjacent locations.
+   3.4 If supporting context spans multiple sentences, choose the single most direct one.
 
-```json
-{
+4. **Numerical handling**
+   4.1 If a percentage is given with a total (e.g., "49.2%" and "N=120"), include both the percentage and the absolute count.
+   4.2 For two complementary groups, you may infer the second group's value by subtraction.
+   4.3 Preserve all statistics verbatim — means, SD, p-values, units (e.g., "47.1 ± 14.8 y", "p = 0.426"). Do not round.
+
+5. **Output format** (strict)
+   5.1 Return a single valid JSON object only — no extra prose, no commentary.
+   5.2 Do NOT wrap the output in markdown code fences (no ```json).
+   5.3 The output must be a single JSON object, not a list.
+   5.4 All property names must be enclosed in double quotes.
+
+## Output Example
+
+{{
   "entities": [
-    {
+    {{
       "entity_type": "Hormones, Biomarkers & Antibodies",
       "canonical_name": "TSH",
-      "key_properties": {
+      "key_properties": {{
+        "Molecule name": "Thyroid Stimulating Hormone",
         "Type": "hormone",
         "Associated condition": "Hypothyroidism",
         "Reference range": "0.4 - 4.0 mIU/L",
-        "Direction of abnormality": "↑ TSH",
-      },
+        "Direction of abnormality": "↑ TSH"
+      }},
       "evidence": "The patient presented with elevated TSH levels consistent with hypothyroidism."
-    }
+    }}
   ]
-}
-```
-"""
+}}
 
+## Input Text
+
+'''
+{text}
+'''
+"""
