@@ -28,7 +28,8 @@ def get_sorted_chunks(paper_dir: str) -> list[str]:
 def _should_skip(filename: str) -> bool:
     name = filename.rsplit(".", 1)[0]  # strip .md
     name = name.split("-", 1)[1] if "-" in name else name
-    return name.lower() in SKIP_SECTIONS
+    name_lower = name.lower()
+    return any(name_lower == s or name_lower.startswith(f"{s}_") for s in SKIP_SECTIONS)
 
 
 def _remove_think_tags(text: str) -> str:

@@ -56,7 +56,7 @@ def main():
     total = len(paper_dirs)
     print(f"\nEntity-Relation Extraction [{model_tag}] — {total} papers found\n")
 
-    success, failed = 0, 0
+    failed_sections = 0
 
     for idx, paper_id in enumerate(paper_dirs, 1):
         paper_path = os.path.join(DATA_DIR, paper_id)
@@ -106,12 +106,10 @@ def main():
 
             except Exception as e:
                 print(f"    FAILED: {chunk_name} — {e}")
-                failed += 1
+                failed_sections += 1
                 continue
 
-        success += 1
-
-    print(f"\nDone. {success} papers processed, {failed} section failures out of {total} papers.")
+    print(f"\nDone. {total} papers iterated, {failed_sections} section failures.")
 
 
 if __name__ == "__main__":

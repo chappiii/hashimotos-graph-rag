@@ -17,6 +17,6 @@ def build_relation_prompt(paper_text: str, entities: list[dict]) -> str:
         [f"- {e['canonical_name']} ({e['entity_type']})" for e in entities]
     )
     return extract_relation_prompt.format(
-        entities=f"**Pre-extracted Entities:**\n{entities_formatted}",
+        entities=entities_formatted,
         text=paper_text,
     )

@@ -108,6 +108,8 @@ Direction matters. The `direction` column shows allowed `source_type → target_
   ]
 }}
 
+## Pre-extracted Entities
+
 {entities}
 
 ## Text for Analysis
