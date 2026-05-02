@@ -10,9 +10,10 @@ from kg_construction.config.kg_construction_config import (
     QDRANT_COLLECTION_CHILDREN,
     VECTOR_DIMENSION,
     BATCH_SIZE,
+    ENTITY_LABELS,
 )
 from kg_construction.utils.connect import connect_neo4j, connect_qdrant
-from kg_construction.utils.neo4j_ingest import ingest_to_neo4j
+from kg_construction.utils.neo4j_ingest import ingest_to_neo4j, setup_constraints
 from kg_construction.utils.qdrant_ingest import (
     create_collection,
     ingest_parents,
@@ -23,6 +24,7 @@ from kg_construction.utils.qdrant_ingest import (
 def run_neo4j():
     driver = connect_neo4j(NEO4J_URI, NEO4J_AUTH)
     try:
+        setup_constraints(driver, ENTITY_LABELS)
         ingest_to_neo4j(ENTITY_RELATION_DIR, driver, batch_size=BATCH_SIZE)
     finally:
         driver.close()

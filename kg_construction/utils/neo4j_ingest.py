@@ -1,23 +1,46 @@
-import os
 import json
 import re
 from pathlib import Path
+from collections import defaultdict
 
-from kg_construction.utils.normalize import normalize_text
-from kg_construction.utils.fuzzy import find_similar
-from kg_construction.utils.parse_filename import parse_relation_filename
+from kg_construction.utils.text_utils import (
+    find_similar,
+    normalize_text,
+    parse_chunk_filename,
+)
+from kg_construction.config.kg_construction_config import ENTITY_LABELS
 
 
 def _sanitize_label(text):
-    """'Diseases & Conditions' → 'diseases_conditions'"""
-    label = re.sub(r"\W+", "_", text.lower()).strip("_")
-    return label
+    """Cypher-safe identifier (used for relation types)."""
+    return re.sub(r"\W+", "_", text.lower()).strip("_")
+
+
+def setup_constraints(driver, entity_labels):
+    """One uniqueness constraint per label on `name` — speeds MERGE, prevents dupes."""
+    with driver.session() as session:
+        for label in entity_labels.values():
+            session.run(
+                f"CREATE CONSTRAINT {label}_name_unique IF NOT EXISTS "
+                f"FOR (n:`{label}`) REQUIRE n.name IS UNIQUE"
+            )
+    print(f"Setup {len(entity_labels)} uniqueness constraints.")
+
+
+def _load_json(path):
+    with open(path, "r", encoding="utf-8") as f:
+        try:
+            return json.load(f)
+        except json.JSONDecodeError:
+            print(f"Skipping invalid JSON: {path}")
+            return None
 
 
 def _collect_entities_and_relations(root_dir):
-    """Walk relation JSONs, aggregate entities and merge relationships."""
-    entity_info = {}       # canonical_name → {type, paper_ids, sections}
-    relation_info = {}     # (source, target, rel_type) → {evidence, paper_ids, sections, key_properties}
+    entity_info = {}              # (label, name) -> {evidence, key_properties, paper_ids, sections}
+    relation_info = {}            # (src_label, src_name, tgt_label, tgt_name, rel_type) -> {...}
+    names_by_label = defaultdict(list)
+    skipped_entity_types = set()
 
     root = Path(root_dir)
     paper_dirs = sorted(
@@ -25,6 +48,77 @@ def _collect_entities_and_relations(root_dir):
         key=lambda d: int(d.name) if d.name.isdigit() else 0,
     )
 
+    # ---- Pass 1: entities ----
+    for paper_dir in paper_dirs:
+        paper_id = paper_dir.name
+
+        for file in paper_dir.iterdir():
+            if not file.name.endswith("_entities.json"):
+                continue
+
+            parsed = parse_chunk_filename(file.name, paper_id)
+            if not parsed:
+                print(f"Skipping unparseable filename: {file.name}")
+                continue
+            section = parsed["section"]
+
+            data = _load_json(file)
+            if data is None:
+                continue
+
+            for ent in data.get("entities", []):
+                entity_type = (ent.get("entity_type") or "").strip()
+                label = ENTITY_LABELS.get(entity_type)
+                if not label:
+                    if entity_type:
+                        skipped_entity_types.add(entity_type)
+                    continue
+
+                raw_name = ent.get("canonical_name") or ""
+                if not isinstance(raw_name, str):
+                    continue
+                name = normalize_text(raw_name.strip())
+                if not name:
+                    continue
+
+                # fuzzy dedup within the same label only
+                match = find_similar(name, names_by_label[label])
+                key_name = match if match else name
+
+                key = (label, key_name)
+                if key not in entity_info:
+                    entity_info[key] = {
+                        "evidence": [],
+                        "key_properties": [],
+                        "paper_ids": set(),
+                        "sections": set(),
+                    }
+                    names_by_label[label].append(key_name)
+
+                evidence = ent.get("evidence")
+                if isinstance(evidence, str) and evidence.strip():
+                    entity_info[key]["evidence"].append(evidence.strip())
+
+                key_props = ent.get("key_properties")
+                if isinstance(key_props, dict) and key_props:
+                    entity_info[key]["key_properties"].append(
+                        json.dumps(key_props, ensure_ascii=False)
+                    )
+
+                entity_info[key]["paper_ids"].add(paper_id)
+                entity_info[key]["sections"].add(section)
+
+    if skipped_entity_types:
+        print(f"Skipped unknown entity types: {sorted(skipped_entity_types)}")
+
+    # name -> label index for relation matching (first label seen wins on collision)
+    name_to_label = {}
+    for (lbl, name) in entity_info.keys():
+        name_to_label.setdefault(name, lbl)
+    all_names = list(name_to_label.keys())
+
+    # ---- Pass 2: relations ----
+    unmatched_relations = 0
     for paper_dir in paper_dirs:
         paper_id = paper_dir.name
 
@@ -32,22 +126,18 @@ def _collect_entities_and_relations(root_dir):
             if not file.name.endswith("_relations.json"):
                 continue
 
-            parsed = parse_relation_filename(file.name, paper_id)
+            parsed = parse_chunk_filename(file.name, paper_id)
             if not parsed:
                 print(f"Skipping unparseable filename: {file.name}")
                 continue
-
             section = parsed["section"]
 
-            with open(file, "r", encoding="utf-8") as f:
-                data = json.load(f)
+            data = _load_json(file)
+            if data is None:
+                continue
 
-            relations = data.get("relations", [])
-
-            for rel in relations:
-                evidence = rel.get("evidence", "").strip()
-                rel_type = rel.get("relation_type", "").strip()
-                key_props = rel.get("key_properties", {})
+            for rel in data.get("relations", []):
+                rel_type = (rel.get("relation_type") or "").strip()
                 if not rel_type:
                     continue
 
@@ -56,77 +146,85 @@ def _collect_entities_and_relations(root_dir):
                 if not isinstance(source, dict) or not isinstance(target, dict):
                     continue
 
-                source_name = normalize_text(source.get("canonical_name", "").strip())
-                source_type = source.get("entity_type", "").strip()
-                target_name = normalize_text(target.get("canonical_name", "").strip())
-                target_type = target.get("entity_type", "").strip()
-
-                if not source_name or not source_type or not target_name or not target_type:
+                src_raw = source.get("canonical_name") or ""
+                tgt_raw = target.get("canonical_name") or ""
+                if not isinstance(src_raw, str) or not isinstance(tgt_raw, str):
                     continue
 
-                # fuzzy dedup against existing entity names
-                source_match = find_similar(source_name, list(entity_info.keys()))
-                source_key = source_match if source_match else source_name
+                src_name = normalize_text(src_raw.strip())
+                tgt_name = normalize_text(tgt_raw.strip())
+                if not src_name or not tgt_name:
+                    continue
 
-                target_match = find_similar(target_name, list(entity_info.keys()))
-                target_key = target_match if target_match else target_name
+                src_match = find_similar(src_name, all_names)
+                tgt_match = find_similar(tgt_name, all_names)
+                if not src_match or not tgt_match:
+                    unmatched_relations += 1
+                    continue
 
-                # aggregate entity info
-                for key, etype in [(source_key, source_type), (target_key, target_type)]:
-                    if key not in entity_info:
-                        entity_info[key] = {
-                            "type": etype,
-                            "paper_ids": set(),
-                            "sections": set(),
-                        }
-                    entity_info[key]["paper_ids"].add(paper_id)
-                    entity_info[key]["sections"].add(section)
+                src_label = name_to_label[src_match]
+                tgt_label = name_to_label[tgt_match]
 
-                # merge relationships by (source, target, rel_type)
-                rel_key = (source_key, target_key, rel_type)
+                rel_key = (src_label, src_match, tgt_label, tgt_match, rel_type)
                 if rel_key not in relation_info:
                     relation_info[rel_key] = {
                         "evidence": [],
+                        "key_properties": [],
                         "paper_ids": set(),
                         "sections": set(),
-                        "key_properties": [],
                     }
 
-                if evidence:
-                    relation_info[rel_key]["evidence"].append(evidence)
+                evidence = rel.get("evidence")
+                if isinstance(evidence, str) and evidence.strip():
+                    relation_info[rel_key]["evidence"].append(evidence.strip())
+
+                key_props = rel.get("key_properties")
+                if isinstance(key_props, dict) and key_props:
+                    relation_info[rel_key]["key_properties"].append(
+                        json.dumps(key_props, ensure_ascii=False)
+                    )
+
                 relation_info[rel_key]["paper_ids"].add(paper_id)
                 relation_info[rel_key]["sections"].add(section)
-                if key_props:
-                    relation_info[rel_key]["key_properties"].append(key_props)
+
+    if unmatched_relations:
+        print(f"Skipped {unmatched_relations} relations with unmatched source/target.")
 
     return entity_info, relation_info
 
 
 def _batch_create_entities(tx, batch):
-    for name, label, paper_ids, sections in batch:
+    for label, name, evidence, key_properties, paper_ids, sections in batch:
         tx.run(
             f"MERGE (e:`{label}` {{name: $name}}) "
-            f"SET e.paper_ids = $paper_ids, e.sections = $sections",
+            f"SET e.evidence = $evidence, "
+            f"e.key_properties = $key_properties, "
+            f"e.paper_ids = $paper_ids, "
+            f"e.sections = $sections",
             name=name,
+            evidence=evidence,
+            key_properties=key_properties,
             paper_ids=paper_ids,
             sections=sections,
         )
 
 
 def _batch_create_relationships(tx, batch):
-    for source, target, rel_type, evidence, paper_ids, sections, key_properties in batch:
+    for src_label, source, tgt_label, target, rel_type, evidence, key_properties, paper_ids, sections in batch:
         tx.run(
-            f"MATCH (a {{name: $source}}) "
-            f"MATCH (b {{name: $target}}) "
+            f"MATCH (a:`{src_label}` {{name: $source}}) "
+            f"MATCH (b:`{tgt_label}` {{name: $target}}) "
             f"MERGE (a)-[r:`{rel_type}`]->(b) "
-            f"SET r.evidence = $evidence, r.paper_ids = $paper_ids, "
-            f"r.sections = $sections, r.key_properties = $key_properties",
+            f"SET r.evidence = $evidence, "
+            f"r.key_properties = $key_properties, "
+            f"r.paper_ids = $paper_ids, "
+            f"r.sections = $sections",
             source=source,
             target=target,
             evidence=evidence,
+            key_properties=key_properties,
             paper_ids=paper_ids,
             sections=sections,
-            key_properties=[json.dumps(kp) for kp in key_properties],
         )
 
 
@@ -135,22 +233,27 @@ def ingest_to_neo4j(root_dir, driver, batch_size=100):
     entity_info, relation_info = _collect_entities_and_relations(root_dir)
     print(f"Found {len(entity_info)} entities, {len(relation_info)} relationships.")
 
-    # prepare entity batches
     entity_batches = [
-        (name, _sanitize_label(info["type"]), list(info["paper_ids"]), list(info["sections"]))
-        for name, info in entity_info.items()
+        (
+            label, name,
+            info["evidence"],
+            info["key_properties"],
+            list(info["paper_ids"]),
+            list(info["sections"]),
+        )
+        for (label, name), info in entity_info.items()
     ]
 
-    # prepare relationship batches
     rel_batches = [
         (
-            source, target, _sanitize_label(rel_type),
+            src_label, source, tgt_label, target,
+            _sanitize_label(rel_type),
             data["evidence"],
+            data["key_properties"],
             list(data["paper_ids"]),
             list(data["sections"]),
-            data["key_properties"],
         )
-        for (source, target, rel_type), data in relation_info.items()
+        for (src_label, source, tgt_label, target, rel_type), data in relation_info.items()
     ]
 
     with driver.session() as session:
