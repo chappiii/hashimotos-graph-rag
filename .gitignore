@@ -20,7 +20,6 @@ extract_metadata/extracted_metadata/
 extract_metadata/notebooks/pdf-info.json
 
 
-
 # chunk pdf
 pdf_section_chunker/chunks/
 pdf_section_chunker/auto-sections/
@@ -31,6 +30,10 @@ pdf_section_chunker/figs_tables/
 # Entity and relation extraction
 extract_entity_relation/extracted_entity_relations/
 extract_entity_relation/define-schema/
+
+
+# KG construction
+kg_construction/evidence_mapping.json
 
 
 *.zip
