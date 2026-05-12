@@ -1,13 +1,60 @@
-extract_entity_prompt = """
+"""
+Entity extraction prompt.
+
+The Reference Vocabulary block is built once at module load from CANONICAL_TERMS
+and substituted into the prompt template. The resulting `extract_entity_prompt`
+is still a `.format()`-compatible template (only placeholder is `{text}`).
+"""
+
+from collections import defaultdict
+
+from extract_entity_relation.canonical_terms import CANONICAL_TERMS
+
+
+def _format_vocabulary(terms):
+    by_type = defaultdict(list)
+    for entry in terms:
+        by_type[entry["type"]].append(entry)
+
+    blocks = []
+    for etype, entries in by_type.items():
+        lines = [f"\n{etype}:"]
+        for e in entries:
+            if e["aliases"]:
+                aliases_str = " | ".join(f'"{a}"' for a in e["aliases"])
+                lines.append(f'- {aliases_str} -> "{e["canonical"]}"')
+            else:
+                lines.append(f'- "{e["canonical"]}"  (use this exact form; pin entity_type)')
+        blocks.append("\n".join(lines))
+    return "\n".join(blocks)
+
+
+_VOCABULARY = _format_vocabulary(CANONICAL_TERMS)
+
+
+_PROMPT_TEMPLATE = """
 You are a top-tier biomedical information extraction algorithm specialized in identifying clinical and scientific entities for knowledge graph construction.
 
-Your task is to extract all relevant entities from the given text according to the predefined Entity Schema below.
+Your task is to extract all relevant entities from the given text according to the Reference Vocabulary, Entity Schema, and Extraction Rules below.
 
 For each extracted entity, return:
-- `entity_type` — must EXACTLY match a label from the schema
-- `canonical_name` — the standard / normalized name of the entity
+- `entity_type` — must EXACTLY match a label from the Schema (or the type pinned by Reference Vocabulary)
+- `surface_form` — the exact verbatim text as it appears in the source
+- `canonical_name` — the normalized biomedical name (from Reference Vocabulary if matched; otherwise the most specific name available)
+- `normalized` — boolean: true if Reference Vocabulary lookup or in-chunk abbreviation expansion was applied; false otherwise
+- `aliases` — list of alternative names mentioned IN THIS CHUNK only (use [] if none)
 - `key_properties` — all properties defined for that entity type (use `null` for unknown values; do NOT omit fields)
 - `evidence` — a single verbatim sentence from the text supporting the extraction
+
+## Reference Vocabulary
+
+When a surface form in the text matches any alias below (case-insensitive; apostrophe and dash variants count as the same character), you MUST:
+- Set `canonical_name` to the listed canonical form
+- Set `entity_type` to the listed type — even if context would suggest a different label
+- Set `normalized` to true
+
+For entries shown without aliases, the canonical form itself is the only surface form; still pin the entity_type as listed.
+__VOCABULARY__
 
 ## Entity Schema
 
@@ -40,7 +87,7 @@ For each extracted entity, return:
 ## Extraction Rules
 
 1. **Schema adherence**
-   1.1 Only extract entities whose `entity_type` matches a label in the schema EXACTLY. Do not invent new types.
+   1.1 Only extract entities whose `entity_type` matches a label in the Schema EXACTLY (or is pinned by Reference Vocabulary). Do not invent new types.
    1.2 All `key_properties` listed for an entity type must appear. Use `null` for unknown values; do not omit fields.
 
 2. **Grounding**
@@ -65,21 +112,36 @@ For each extracted entity, return:
    5.3 The output must be a single JSON object, not a list.
    5.4 All property names must be enclosed in double quotes.
 
+6. **Normalization rules**
+   6.1 `surface_form` — the exact verbatim text as written in the chunk (preserve original case, punctuation, hyphens, apostrophes).
+   6.2 `canonical_name`:
+       - If `surface_form` matches an alias in the Reference Vocabulary, use the listed canonical form.
+       - Otherwise, use the most specific biomedical name available. Expand abbreviations ONLY if the expansion is clearly defined within this same chunk (e.g., chunk says "interleukin-6 (IL-6)" — canonical = "Interleukin-6").
+       - If no normalization applies, set `canonical_name` equal to `surface_form`.
+   6.3 `entity_type`:
+       - If the canonical name is in Reference Vocabulary, use the vocabulary's entity_type.
+       - Otherwise, choose the best fit from the Schema.
+   6.4 `normalized` — true if rule 6.2 applied a vocabulary lookup or an in-chunk expansion; false otherwise.
+   6.5 `aliases` — list alternative names that appear IN THIS CHUNK and are NOT redundant with `canonical_name` or `surface_form`. Example: chunk says "Hashimoto's thyroiditis (HT) is..." → for the HT entity, `aliases: ["HT"]`. Do NOT echo Reference Vocabulary aliases. Use [] if no other names appear in the chunk.
+
 ## Output Example
 
 {{
   "entities": [
     {{
-      "entity_type": "Hormones, Biomarkers & Antibodies",
-      "canonical_name": "TSH",
+      "entity_type": "Diseases & Conditions",
+      "surface_form": "Hashimoto's thyroiditis",
+      "canonical_name": "Hashimoto's Thyroiditis",
+      "normalized": true,
+      "aliases": ["HT", "Hashimoto thyroiditis"],
       "key_properties": {{
-        "Molecule name": "Thyroid Stimulating Hormone",
-        "Type": "hormone",
-        "Associated condition": "Hypothyroidism",
-        "Reference range": "0.4 - 4.0 mIU/L",
-        "Direction of abnormality": "↑ TSH"
+        "Disease name": "Hashimoto's Thyroiditis",
+        "Autoimmune": true,
+        "Chronicity": "chronic",
+        "Organ/System affected": "thyroid gland",
+        "Endocrine-related": true
       }},
-      "evidence": "The patient presented with elevated TSH levels consistent with hypothyroidism."
+      "evidence": "Hashimoto's thyroiditis (HT) is a chronic autoimmune disease of the thyroid gland that frequently progresses to hypothyroidism."
     }}
   ]
 }}
@@ -90,3 +152,8 @@ For each extracted entity, return:
 {text}
 '''
 """
+
+
+# Substitute the vocabulary at module load. Using a non-brace placeholder so it
+# does not interfere with `.format(text=...)` at call time.
+extract_entity_prompt = _PROMPT_TEMPLATE.replace("__VOCABULARY__", _VOCABULARY)

@@ -72,6 +72,8 @@ Direction matters. The `direction` column shows allowed `source_type → target_
 5. **Source/target sourcing**
    5.1 `source_entity` and `target_entity` MUST be drawn from the pre-extracted entities list below.
    5.2 Do not invent entities. If a relation requires an entity not in the list, do not extract that relation.
+   5.3 Copy each entity's `canonical_name` and `entity_type` EXACTLY as listed. Do not modify, abbreviate, expand, or invent variants.
+   5.4 Pre-extracted entities also carry `surface_form` and `aliases` fields — use these to match how the text mentions an entity (e.g., text says "HT" and an entity has `surface_form: "HT"` / `canonical_name: "Hashimoto's Thyroiditis"`). Output ONLY `canonical_name` and `entity_type` in `source_entity` / `target_entity`.
 
 6. **Evidence rules** (strict)
    6.1 `evidence` MUST be a single contiguous sentence copied verbatim from the text.
@@ -93,7 +95,7 @@ Direction matters. The `direction` column shows allowed `source_type → target_
       "relation_type": "is_a_serologic_marker_of",
       "source_entity": {{
         "entity_type": "Hormones, Biomarkers & Antibodies",
-        "canonical_name": "Anti-TPO"
+        "canonical_name": "Thyroid Peroxidase Antibody"
       }},
       "target_entity": {{
         "entity_type": "Diseases & Conditions",
