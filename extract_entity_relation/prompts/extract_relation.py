@@ -9,6 +9,8 @@ For each relation, return:
 - `target_entity` — the target entity (must be in the pre-extracted list)
 - `key_properties` — properties relevant to the relation (use `null` for unknown values; do NOT omit fields)
 - `evidence` — a single verbatim sentence from the text supporting the relation
+- `claim_polarity` — whether the relation is affirmed or denied: `positive` | `negative` | `mixed` | `uncertain` | `hypothetical`
+- `claim_certainty` — strength of the claim: `high` | `moderate` | `low`
 
 ## Allowed Relations (32 types)
 
@@ -81,6 +83,23 @@ Direction matters. The `direction` column shows allowed `source_type → target_
    6.3 Do NOT paraphrase, summarize, or stitch fragments from non-adjacent locations.
    6.4 If supporting context spans multiple sentences, choose the single most direct one.
 
+8. **Negation and certainty rules**
+   8.1 `claim_polarity` — choose one:
+       - `positive`     — the relation is directly affirmed ("X is associated with Y", "X causes Y")
+       - `negative`     — the relation is explicitly denied ("X was NOT associated with Y", "X failed to show an effect on Y")
+       - `mixed`        — the text reports both supporting and contradicting evidence for the relation
+       - `uncertain`    — the text is ambiguous or inconclusive ("the role of X in Y is unclear")
+       - `hypothetical` — the relation is proposed as speculation or hypothesis ("X may be involved in Y")
+   8.2 `claim_certainty` — choose one:
+       - `high`     — directly stated finding, significant p-value, or strong causal claim
+       - `moderate` — trend reported, borderline significance, or observational association
+       - `low`      — speculation, single case, pilot data, or author opinion
+   8.3 Do NOT convert negated findings into positive relations. These phrases signal `negative` polarity:
+       - "no association", "not associated", "failed to show", "did not increase",
+         "no significant difference", "no effect", "was not found to"
+   8.4 These phrases signal `hypothetical` polarity:
+       - "may", "might", "could", "possibly", "is thought to", "is hypothesized to", "remains to be confirmed"
+
 7. **Output format** (strict)
    7.1 Return a single valid JSON object only — no extra prose, no commentary.
    7.2 Do NOT wrap the output in markdown code fences (no ```json).
@@ -105,7 +124,9 @@ Direction matters. The `direction` column shows allowed `source_type → target_
         "test_type": "antibody",
         "diagnostic_role": "primary serologic marker"
       }},
-      "evidence": "Increased serum TPOAbs are used to confirm the diagnosis of Hashimoto's thyroiditis."
+      "evidence": "Increased serum TPOAbs are used to confirm the diagnosis of Hashimoto's thyroiditis.",
+      "claim_polarity": "positive",
+      "claim_certainty": "high"
     }}
   ]
 }}
