@@ -33,7 +33,7 @@ extract_entity_relation/define-schema/
 
 
 # KG construction
-kg_construction/evidence_mapping.json
+kg_construction/
 
 
 *.zip
