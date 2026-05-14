@@ -15,7 +15,7 @@ Output: kg_ingestion/pre_ingestion/output/claim_registry.json
       "polarity_counts", "certainty_max",
       "paper_ids", "paper_count",
       "evidence": [ { evidence_id, evidence_text, paper_id, section_type,
-                      claim_polarity, claim_certainty } ]
+                      section_name, claim_polarity, claim_certainty } ]
     }
   }
 
@@ -49,10 +49,16 @@ _SECTION_MAP = {
 _CERTAINTY_RANK = {"high": 2, "moderate": 1, "low": 0}
 
 
-def _section_type(file_stem: str) -> str:
+def _section_name(file_stem: str) -> str:
+    """Return the human-readable section name from the chunk filename."""
     s = re.sub(r"_(entities|relations)$", "", file_stem)
-    s = re.sub(r"^\d+-", "", s)
-    s = re.sub(r"^[\d.]+_?", "", s).lower()
+    s = re.sub(r"^\d+-", "", s)          # strip leading chunk index (e.g. "4-")
+    s = s.replace("_", " ").strip(" .")
+    return s
+
+
+def _section_type(file_stem: str) -> str:
+    s = _section_name(file_stem).lower()
     for keyword, label in _SECTION_MAP.items():
         if keyword in s:
             return label
@@ -84,6 +90,7 @@ def build_registry(forms_index: dict[str, str], entities: dict) -> dict:
         paper_id = int(paper_dir.name)
         for rel_file in sorted(paper_dir.glob("*_relations.json")):
             section_type = _section_type(rel_file.stem)
+            section_name = _section_name(rel_file.stem)
             try:
                 data = json.loads(rel_file.read_text(encoding="utf-8"))
             except json.JSONDecodeError:
@@ -151,6 +158,7 @@ def build_registry(forms_index: dict[str, str], entities: dict) -> dict:
                         "evidence_text":  evidence_text,
                         "paper_id":       paper_id,
                         "section_type":   section_type,
+                        "section_name":   section_name,
                         "claim_polarity": polarity,
                         "claim_certainty": certainty,
                     })
