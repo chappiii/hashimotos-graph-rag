@@ -44,7 +44,7 @@ For each extracted entity, return:
 - `normalized` — boolean: true if Reference Vocabulary lookup or in-chunk abbreviation expansion was applied; false otherwise
 - `aliases` — list of alternative names mentioned IN THIS CHUNK only (use [] if none)
 - `key_properties` — all properties defined for that entity type (use `null` for unknown values; do NOT omit fields)
-- `evidence` — a single verbatim sentence from the text supporting the extraction
+- `evidence` — 1–3 consecutive verbatim sentences from the text supporting the extraction
 
 ## Reference Vocabulary
 
@@ -96,10 +96,10 @@ __VOCABULARY__
    2.3 If you are uncertain about an entity's `entity_type`, DO NOT extract it. Better to omit than to misclassify.
 
 3. **Evidence rules** (strict)
-   3.1 `evidence` MUST be a single contiguous sentence copied verbatim from the text.
+   3.1 `evidence` MUST be 1–3 consecutive sentences copied verbatim from the text — use more sentences only when a single sentence lacks sufficient context.
    3.2 Do NOT use ellipsis ("...") under any circumstances.
    3.3 Do NOT paraphrase, summarize, or stitch fragments from non-adjacent locations.
-   3.4 If supporting context spans multiple sentences, choose the single most direct one.
+   3.4 The selected sentences must be contiguous — no skipping sentences in between.
 
 4. **Numerical handling**
    4.1 If a percentage is given with a total (e.g., "49.2%" and "N=120"), include both the percentage and the absolute count.
@@ -123,6 +123,12 @@ __VOCABULARY__
        - Otherwise, choose the best fit from the Schema.
    6.4 `normalized` — true if rule 6.2 applied a vocabulary lookup or an in-chunk expansion; false otherwise.
    6.5 `aliases` — list alternative names that appear IN THIS CHUNK and are NOT redundant with `canonical_name` or `surface_form`. Example: chunk says "Hashimoto's thyroiditis (HT) is..." → for the HT entity, `aliases: ["HT"]`. Do NOT echo Reference Vocabulary aliases. Use [] if no other names appear in the chunk.
+
+## Section Context
+
+Current section: {section_type}
+
+{entity_section_rules}
 
 ## Output Example
 
@@ -152,6 +158,38 @@ __VOCABULARY__
 {text}
 '''
 """
+
+
+ENTITY_SECTION_RULES: dict[str, str] = {
+    "ABSTRACT": (
+        "This section is an abstract. It is a curated summary of the paper's own verified findings. "
+        "Extract all entities present — trust what is stated here as the paper's own claims."
+    ),
+    "INTRODUCTION": (
+        "This section is an introduction or background. It mixes established knowledge "
+        "with prior literature citations. Extract only well-established entities. "
+        "Skip entities that appear only in speculative or hypothetical statements."
+    ),
+    "METHODS": (
+        "This section is a methods section. Focus on methodological entities: "
+        "Study Groups, Study Design, Treatments, Diagnostic Methods, Laboratory Findings. "
+        "Do not extract clinical findings as if they are the paper's own results."
+    ),
+    "RESULTS": (
+        "This section is a results section. Extract all entities aggressively — "
+        "these are the paper's direct findings, measurements, and statistics."
+    ),
+    "DISCUSSION": (
+        "This section is a discussion. Authors mix their own findings with prior "
+        "literature, speculation, and hypotheses. Be conservative: extract entities "
+        "clearly from the paper's own data. Skip purely speculative or hypothetical entities."
+    ),
+    "CONCLUSION": (
+        "This section is a conclusions section. Extract all entities — "
+        "conclusions summarize the paper's own verified findings."
+    ),
+    "OTHER": "Extract normally according to the rules above.",
+}
 
 
 # Substitute the vocabulary at module load. Using a non-brace placeholder so it

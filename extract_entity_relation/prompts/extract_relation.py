@@ -67,9 +67,11 @@ Direction matters. The `direction` column shows allowed `source_type → target_
    3.2 Methodological mentions ("X was recorded as a variable", "Y was tested using Z", "group A was defined as...") do NOT support a relation.
    3.3 Co-mention of two entities in the same sentence is NOT sufficient. The text must claim a specific relation between them.
 
-4. **Materials & Methods sections — special caution**
-   4.1 In sections describing study methodology, ONLY extract these relation types: `excluded_in_study`, `compared_with`, `diagnosed_by`, `is_a_serologic_marker_of`, `measured_by`.
-   4.2 Skip all other relation types in methods sections — descriptions of procedures, variable definitions, and statistical tests are NOT relations.
+4. **Section-aware extraction**
+
+   Current section: {section_type}
+
+{relation_section_rules}
 
 5. **Source/target sourcing**
    5.1 `source_entity` and `target_entity` MUST be drawn from the pre-extracted entities list below.
@@ -126,7 +128,8 @@ Direction matters. The `direction` column shows allowed `source_type → target_
       }},
       "evidence": "Increased serum TPOAbs are used to confirm the diagnosis of Hashimoto's thyroiditis.",
       "claim_polarity": "positive",
-      "claim_certainty": "high"
+      "claim_certainty": "high",
+      "section_type": "RESULTS"
     }}
   ]
 }}
@@ -141,3 +144,46 @@ Direction matters. The `direction` column shows allowed `source_type → target_
 {text}
 '''
 """
+
+RELATION_SECTION_RULES: dict[str, str] = {
+    "ABSTRACT": (
+        "This section is an abstract. All 32 relation types are allowed. "
+        "The abstract states the paper's own findings — extract with high certainty "
+        "unless the language is explicitly hedged."
+    ),
+    "INTRODUCTION": (
+        "This section is an introduction or background. Apply these restrictions:\n"
+        "   - Only extract relations that represent well-established scientific facts.\n"
+        "   - Default `claim_certainty` to `moderate` unless the language is definitive.\n"
+        "   - Do NOT extract speculative or hypothetical relations (\"may\", \"might\", \"could\").\n"
+        "   - Findings cited from other papers are context, not the current paper's claims — "
+        "still extract them but use `moderate` certainty."
+    ),
+    "METHODS": (
+        "This section is a methods section. ONLY extract these 5 relation types:\n"
+        "   `excluded_in_study`, `compared_with`, `diagnosed_by`, `is_a_serologic_marker_of`, `measured_by`\n"
+        "   Skip ALL other relation types. Descriptions of procedures, variable definitions, "
+        "and statistical tests are NOT relations."
+    ),
+    "RESULTS": (
+        "This section is a results section. All 32 relation types are allowed. "
+        "Extract aggressively — these are the paper's direct findings. "
+        "Trust reported statistics as `high` certainty unless the text explicitly hedges."
+    ),
+    "DISCUSSION": (
+        "This section is a discussion. Apply these rules:\n"
+        "   - All 32 relation types are allowed.\n"
+        "   - Default `claim_certainty` to `moderate`. Use `high` only for relations "
+        "directly backed by the paper's own results restated here.\n"
+        "   - Flag speculative language (\"may\", \"might\", \"could\", \"is thought to\") "
+        "as `claim_polarity: hypothetical` and `claim_certainty: low`.\n"
+        "   - Do NOT extract relations that are purely about prior literature "
+        "without reference to the current study's findings."
+    ),
+    "CONCLUSION": (
+        "This section is a conclusions section. All 32 relation types are allowed.\n"
+        "   - Use `high` certainty for relations directly derived from the paper's own results.\n"
+        "   - Use `moderate` certainty for broader generalizations the authors state."
+    ),
+    "OTHER": "Extract normally. All 32 relation types are allowed.",
+}
