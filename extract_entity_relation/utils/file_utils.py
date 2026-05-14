@@ -4,6 +4,31 @@ import re
 
 SKIP_SECTIONS = {"references", "appendix"}
 
+# Maps canonical section type → keyword substrings (checked against lowercased, number-stripped header)
+_SECTION_KEYWORDS: dict[str, list[str]] = {
+    "ABSTRACT":     ["abstract"],
+    "INTRODUCTION": ["introduction", "background", "aims and objectives", "objective"],
+    "METHODS":      ["method", "material", "methodology", "patients and", "study population", "participants", "subjects", "study selection", "search strategy"],
+    "RESULTS":      ["result", "finding", "outcome", "observation"],
+    "DISCUSSION":   ["discussion"],
+    "CONCLUSION":   ["conclusion", "summary", "concluding", "conclusive"],
+}
+
+
+def extract_section_header(text: str) -> str:
+    first_line = text.split("\n")[0].strip()
+    if first_line.startswith("Header:"):
+        return first_line[len("Header:"):].strip()
+    return ""
+
+
+def get_section_type(header: str) -> str:
+    normalized = re.sub(r"^[\d.\s]+", "", header).strip().lower()
+    for section_type, keywords in _SECTION_KEYWORDS.items():
+        if any(kw in normalized for kw in keywords):
+            return section_type
+    return "OTHER"
+
 
 def read_content(file_path: str) -> str:
     try:
@@ -28,7 +53,7 @@ def get_sorted_chunks(paper_dir: str) -> list[str]:
 def _should_skip(filename: str) -> bool:
     name = filename.rsplit(".", 1)[0]  # strip .md
     name = name.split("-", 1)[1] if "-" in name else name
-    name_lower = name.lower()
+    name_lower = re.sub(r"^[\d._\s]+", "", name.lower())
     return any(name_lower == s or name_lower.startswith(f"{s}_") for s in SKIP_SECTIONS)
 
 
@@ -81,11 +106,19 @@ def _save_raw_response(response_text: str, output_path: str) -> None:
         f.write(response_text)
 
 
-def save_result(response_text: str, output_path: str) -> str | None:
+def parse_response(response_text: str) -> dict | list | None:
+    """Parse a raw LLM response string into a Python object."""
+    return _extract_json_from_response(_remove_think_tags(response_text))
+
+
+def save_result(response_text: str | dict, output_path: str) -> str | None:
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
-    cleaned = _remove_think_tags(response_text)
-    parsed = _extract_json_from_response(cleaned)
+    if isinstance(response_text, dict):
+        parsed = response_text
+    else:
+        cleaned = _remove_think_tags(response_text)
+        parsed = _extract_json_from_response(cleaned)
 
     if parsed is None:
         print("  JSON parsing failed.")
