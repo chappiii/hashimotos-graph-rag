@@ -62,7 +62,7 @@ NEO4J_DATABASE = os.getenv("NEO4J_DATABASE", "neo4j")
 
 # --- Qdrant ---
 QDRANT_URL = "http://localhost:6333"
-VECTOR_DIM  = 768 
+VECTOR_DIM  = 3072
 
 # --- Claim ranking weights ---
 CERTAINTY_WEIGHTS = {"high": 1.0, "moderate": 0.6, "low": 0.2}
