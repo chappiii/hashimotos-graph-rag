@@ -85,6 +85,12 @@ Direction matters. The `direction` column shows allowed `source_type → target_
    6.3 Do NOT paraphrase, summarize, or stitch fragments from non-adjacent locations.
    6.4 If supporting context spans multiple sentences, choose the single most direct one.
 
+7. **Output format** (strict)
+   7.1 Return a single valid JSON object only — no extra prose, no commentary.
+   7.2 Do NOT wrap the output in markdown code fences (no ```json).
+   7.3 The output must be a single JSON object, not a list.
+   7.4 All property names must be enclosed in double quotes.
+   
 8. **Negation and certainty rules**
    8.1 `claim_polarity` — choose one:
        - `positive`     — the relation is directly affirmed ("X is associated with Y", "X causes Y")
@@ -102,11 +108,6 @@ Direction matters. The `direction` column shows allowed `source_type → target_
    8.4 These phrases signal `hypothetical` polarity:
        - "may", "might", "could", "possibly", "is thought to", "is hypothesized to", "remains to be confirmed"
 
-7. **Output format** (strict)
-   7.1 Return a single valid JSON object only — no extra prose, no commentary.
-   7.2 Do NOT wrap the output in markdown code fences (no ```json).
-   7.3 The output must be a single JSON object, not a list.
-   7.4 All property names must be enclosed in double quotes.
 
 ## Output Example
 
