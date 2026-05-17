@@ -30,10 +30,41 @@ pdf_section_chunker/figs_tables/
 # Entity and relation extraction
 extract_entity_relation/extracted_entity_relations/
 extract_entity_relation/define-schema/
+extract_entity_relation/analysis/
+extract_entity_relation/canonical_terms.py
+extract_entity_relation/evaluation/
+extract_entity_relation/extracted_entity_relations-1/
+extract_entity_relation/extracted_entity_relations-115/
+extract_entity_relation/extracted_entity_relations-2/
+extract_entity_relation/extracted_entity_relations-ol-1/
+extract_entity_relation/extracted_entity_relations-ol-2/
+extract_entity_relation/extracted_entity_relations-ol-3/
+extract_entity_relation/fundamental_improvements.md
+extract_entity_relation/ontology test/
+extract_entity_relation/raw_responses/
+extract_entity_relation/test_canonical_terms.py
+extract_entity_relation/utils/curate_ontology_ids.py
+
+# KG schema doc
+kg_ingestion/KG_SCHEMA.md
+
+# KG ingestion outputs
+kg_ingestion/design/
+kg_ingestion/pre_ingestion/analyze/
+kg_ingestion/pre_ingestion/output/
 
 
 # KG construction
 kg_construction/
+
+# DB inspection
+DB-inspection/
+
+# Old retrieval code
+retrieval-old/
+
+# question set
+QA/
 
 
 *.zip
