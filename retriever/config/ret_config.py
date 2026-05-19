@@ -43,6 +43,11 @@ SECTION_WEIGHTS: dict[str, float] = {
 QUALITY_PRE_FILTER_N = 40
 TOP_N_FINAL          = TOP_K
 EVIDENCE_PER_CLAIM   = 2
+ENTITY_BUCKET_QUALITY = 5
+ENTITY_BUCKET_HYBRID  = 1
+
+# --- multi-hop expansion ---
+MAX_PATH_HOPS = 2
 
 # --- entity matching ---
 ENTITY_MATCH_THRESHOLD = 80

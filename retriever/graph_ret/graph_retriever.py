@@ -58,29 +58,44 @@ RETURN
 """ + _EVIDENCE_FRAGMENT
 
 
-def _parse_rows(rows: list[dict]) -> list[dict]:
+def _row_to_claim(row: dict) -> dict:
+    return {
+        "claim_signature":  row["claim_signature"],
+        "source_name":      row["source_name"],
+        "target_name":      row["target_name"],
+        "relation_type":    row["relation_type"],
+        "polarity_counts":  json.loads(row["polarity_counts"] or "{}"),
+        "certainty_max":    row.get("certainty_max") or "low",
+        "paper_count":      row.get("paper_count") or 0,
+        "study_weight_max": row.get("study_weight_max") or 0.4,
+        "evidence_list": [
+            e for e in row["evidence_list"] if e.get("evidence_text")
+        ],
+    }
+
+
+def _rows_to_paths(rows: list[dict], matched_entities: list[str]) -> list[dict]:
+    """Wrap each unique claim as a length-1 path object."""
     seen: dict[str, dict] = {}
     for row in rows:
         sig = row["claim_signature"]
         if sig in seen:
             continue
+        claim = _row_to_claim(row)
+        entities = [claim["source_name"], claim["target_name"]]
+        anchors  = [e for e in entities if e in matched_entities]
         seen[sig] = {
-            "claim_signature":  sig,
-            "source_name":      row["source_name"],
-            "target_name":      row["target_name"],
-            "relation_type":    row["relation_type"],
-            "polarity_counts":  json.loads(row["polarity_counts"] or "{}"),
-            "certainty_max":    row.get("certainty_max") or "low",
-            "paper_count":      row.get("paper_count") or 0,
-            "study_weight_max": row.get("study_weight_max") or 0.4,
-            "evidence_list": [
-                e for e in row["evidence_list"] if e.get("evidence_text")
-            ],
+            "path_signature":  sig,
+            "length":          1,
+            "entities":        entities,
+            "claims":          [claim],
+            "anchor_entities": anchors,
         }
     return list(seen.values())
 
 
-def get_claims(entity_names: list[str]) -> list[dict]:
+def get_paths(entity_names: list[str]) -> list[dict]:
+    """Single-hop retrieval: returns each direct claim as a length-1 path."""
     if not entity_names:
         return []
 
@@ -100,4 +115,30 @@ def get_claims(entity_names: list[str]) -> list[dict]:
     finally:
         driver.close()
 
-    return _parse_rows(rows)
+    return _rows_to_paths(rows, entity_names)
+
+
+if __name__ == "__main__":
+    from retriever.config.ret_config import SEP, SEP2
+    from retriever.graph_ret.query_decomposer import decompose
+    from retriever.graph_ret.entity_matcher import load_registry, match_entities
+
+    query = "What is the effect of Vitamin D supplementation on TSH levels in Hashimoto's Thyroiditis patients?"
+
+    registry = load_registry()
+    spans    = decompose(query)
+    matched  = match_entities(spans, registry)
+    paths    = get_paths(matched)
+
+    print(SEP)
+    print(f"QUERY:   {query}")
+    print(f"MATCHED: {matched}")
+    print(SEP)
+
+    print(f"\n  1-HOP PATHS  ({len(paths)})")
+    print(SEP2)
+    for i, p in enumerate(paths, 1):
+        c = p["claims"][0]
+        print(f"  [{i}] {c['source_name']} --[{c['relation_type']}]--> {c['target_name']}")
+        print(f"       anchors={p['anchor_entities']}  certainty={c['certainty_max']}  papers={c['paper_count']}")
+    print(SEP)

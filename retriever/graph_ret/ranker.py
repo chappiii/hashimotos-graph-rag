@@ -8,6 +8,8 @@ from retriever.config.ret_config import (
     QUALITY_PRE_FILTER_N,
     TOP_N_FINAL,
     EVIDENCE_PER_CLAIM,
+    ENTITY_BUCKET_QUALITY,
+    ENTITY_BUCKET_HYBRID,
 )
 from retriever.graph_ret.embed import embed_query, embed
 
@@ -18,7 +20,7 @@ def _cosine(a: list[float], b: list[float]) -> float:
     return float(np.dot(va, vb) / denom) if denom else 0.0
 
 
-def _quality_score(claim: dict) -> float:
+def _claim_quality(claim: dict) -> float:
     certainty_w = CERTAINTY_WEIGHTS.get(claim.get("certainty_max", "low"), 0.2)
     paper_w     = math.log1p(claim.get("paper_count", 0))
     study_w     = claim.get("study_weight_max") or 0.4
@@ -31,10 +33,24 @@ def _quality_score(claim: dict) -> float:
     return certainty_w * paper_w * study_w * section_w
 
 
-def _claim_text(claim: dict) -> str:
-    triple = f"{claim['source_name']} {claim['relation_type']} {claim['target_name']}"
-    ev_texts = [e["evidence_text"] for e in claim.get("evidence_list", [])[:2] if e.get("evidence_text")]
-    return triple + (". " + " ".join(ev_texts) if ev_texts else "")
+def _path_quality(path: dict) -> float:
+    """Product of per-claim qualities - chain decays multiplicatively."""
+    score = 1.0
+    for c in path["claims"]:
+        score *= _claim_quality(c)
+    return score
+
+
+def _path_text(path: dict) -> str:
+    """Concatenated chain text used for hybrid (semantic) re-ranking."""
+    parts: list[str] = []
+    for c in path["claims"]:
+        parts.append(f"{c['source_name']} {c['relation_type']} {c['target_name']}")
+    for c in path["claims"]:
+        for ev in c.get("evidence_list", [])[:2]:
+            if ev.get("evidence_text"):
+                parts.append(ev["evidence_text"])
+    return ". ".join(parts)
 
 
 def _top_evidence(claim: dict, k: int) -> list[dict]:
@@ -49,38 +65,41 @@ def _top_evidence(claim: dict, k: int) -> list[dict]:
 
 
 def rank_by_quality(
-    claims: list[dict],
+    paths: list[dict],
     specific_entities: list[str] | None = None,
     top_n: int = QUALITY_PRE_FILTER_N,
-    entity_bucket_size: int = 5,
+    entity_bucket_size: int = ENTITY_BUCKET_QUALITY,
 ) -> list[dict]:
     """
-    Two-bucket pre-filter:
-    1. Entity bucket  - top entity_bucket_size claims per specific entity
-                        (guarantees niche entities survive regardless of paper count)
-    2. Quality bucket - fill remaining slots with global quality ranking
+    Three-bucket pre-filter on paths (length-1 and length-2 co-ranked):
+    1. Both-anchors bucket - every length-1 path with BOTH endpoints in matched specifics
+                             (the most directly query-relevant direct claims, always kept)
+    2. Entity bucket       - top entity_bucket_size paths per specific anchor entity
+    3. Quality bucket      - fill remaining slots by global path-quality ranking
     """
-    for c in claims:
-        c["_quality_score"] = _quality_score(c)
+    for p in paths:
+        p["_quality_score"] = _path_quality(p)
 
     kept: dict[str, dict] = {}
 
     if specific_entities:
+        specific_set = set(specific_entities)
+        for p in paths:
+            if p["length"] == 1 and set(p["entities"]).issubset(specific_set):
+                kept[p["path_signature"]] = p
+
         for entity in specific_entities:
-            entity_claims = [
-                c for c in claims
-                if c["source_name"] == entity or c["target_name"] == entity
-            ]
-            entity_claims.sort(key=lambda c: c["_quality_score"], reverse=True)
-            for c in entity_claims[:entity_bucket_size]:
-                kept[c["claim_signature"]] = c
+            entity_paths = [p for p in paths if entity in p["anchor_entities"]]
+            entity_paths.sort(key=lambda p: p["_quality_score"], reverse=True)
+            for p in entity_paths[:entity_bucket_size]:
+                kept[p["path_signature"]] = p
 
     remaining = top_n - len(kept)
     if remaining > 0:
-        global_ranked = sorted(claims, key=lambda c: c["_quality_score"], reverse=True)
-        for c in global_ranked:
-            if c["claim_signature"] not in kept:
-                kept[c["claim_signature"]] = c
+        global_ranked = sorted(paths, key=lambda p: p["_quality_score"], reverse=True)
+        for p in global_ranked:
+            if p["path_signature"] not in kept:
+                kept[p["path_signature"]] = p
                 remaining -= 1
                 if remaining == 0:
                     break
@@ -89,50 +108,51 @@ def rank_by_quality(
 
 
 def rank_by_hybrid(
-    claims: list[dict],
+    paths: list[dict],
     query: str,
     specific_entities: list[str] | None = None,
     top_n: int = TOP_N_FINAL,
     evidence_k: int = EVIDENCE_PER_CLAIM,
+    entity_bucket_size: int = ENTITY_BUCKET_HYBRID,
 ) -> list[dict]:
-    """
-    Embed query + each claim text, compute cosine similarity, return top_n claims
-    with evidence_list trimmed to the top-k highest-section-weight sentences.
-    """
+    """Embed query + each path (concat chain text), rank by cosine, trim evidence."""
     query_vec = embed_query(query)
     print("  [embed] query embedded")
 
-    for i, c in enumerate(claims):
-        c["_cosine_score"] = _cosine(query_vec, embed(_claim_text(c)))
-        print(f"  [embed] {i+1}/{len(claims)} claims embedded", end="\r")
+    for i, p in enumerate(paths):
+        p["_cosine_score"] = _cosine(query_vec, embed(_path_text(p)))
+        print(f"  [embed] {i+1}/{len(paths)} paths embedded", end="\r")
     print()
 
-    for c in claims:
-        c["_hybrid_score"] = c["_cosine_score"]
+    for p in paths:
+        p["_hybrid_score"] = p["_cosine_score"]
 
-    ranked = sorted(claims, key=lambda c: c["_hybrid_score"], reverse=True)
+    ranked = sorted(paths, key=lambda p: p["_hybrid_score"], reverse=True)
 
     final: dict[str, dict] = {}
     if specific_entities:
         for entity in specific_entities:
-            for c in ranked:
-                if c["source_name"] == entity or c["target_name"] == entity:
-                    if c["claim_signature"] not in final:
-                        final[c["claim_signature"]] = c
-                        break
+            kept = 0
+            for p in ranked:
+                if kept >= entity_bucket_size:
+                    break
+                if entity in p["anchor_entities"] and p["path_signature"] not in final:
+                    final[p["path_signature"]] = p
+                    kept += 1
 
     remaining = top_n - len(final)
-    for c in ranked:
+    for p in ranked:
         if remaining == 0:
             break
-        if c["claim_signature"] not in final:
-            final[c["claim_signature"]] = c
+        if p["path_signature"] not in final:
+            final[p["path_signature"]] = p
             remaining -= 1
 
-    top = sorted(final.values(), key=lambda c: c["_hybrid_score"], reverse=True)[:top_n]
+    top = sorted(final.values(), key=lambda p: p["_hybrid_score"], reverse=True)[:top_n]
 
-    print(f"  [embed] selecting top evidence for {len(top)} claims...")
-    for c in top:
-        c["evidence_list"] = _top_evidence(c, k=evidence_k)
+    print(f"  [embed] selecting top evidence for {len(top)} paths...")
+    for p in top:
+        for c in p["claims"]:
+            c["evidence_list"] = _top_evidence(c, k=evidence_k)
 
     return top
