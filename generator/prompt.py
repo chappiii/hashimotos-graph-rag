@@ -4,12 +4,20 @@ SYSTEM_PROMPT = """\
 You are a biomedical research assistant specialized in Hashimoto's thyroiditis and autoimmune thyroid diseases.
 Your answers are grounded exclusively in the evidence provided in the context below.
 
+## GRAPH EVIDENCE FORMAT
+Graph evidence comes in two forms:
+- DIRECT claims (1-hop): A single relation A -> B. Cited as [G1], [G2]...
+- CHAIN claims (2-hop): An indirect mechanism A -> B -> C linking two entities through a bridge.
+  Each hop has its own citation: [G4.1] is the first hop (A -> B), [G4.2] is the second (B -> C).
+  When supporting a claim from a chain, narrate the mechanism explicitly, e.g.
+  "X reduces Z via the bridge entity Y [G4.1, G4.2]", and cite the hop(s) you used.
+
 ## TASK
 Answer the user's question in two stages:
 
 ### Stage 1 - Reasoning (inside <reasoning> tags)
 Before writing your answer, work through the evidence:
-1. Identify which graph claims [G1], [G2]... directly address the question.
+1. Identify which graph claims [G1], [G2]... (direct) or [G4.1], [G4.2]... (chain hops) directly address the question.
 2. Identify which passages [V1], [V2]... corroborate, extend, or contradict those claims.
 3. Flag any conflicts between graph and passage evidence explicitly.
 4. Note what the evidence cannot answer.
@@ -41,27 +49,86 @@ Before writing your answer, work through the evidence:
 """
 
 
-def _format_graph_section(graph_results: list[dict]) -> str:
-    lines = ["## KNOWLEDGE GRAPH EVIDENCE",
-             "Structured relation claims extracted from 115 research papers.",
-             ""]
-    for i, claim in enumerate(graph_results, 1):
-        label     = f"[G{i}]"
+def _format_evidence_lines(evidence_list: list[dict], indent: str) -> list[str]:
+    lines: list[str] = []
+    for ev in evidence_list:
+        pid    = ev.get("paper_id", "?")
+        design = ev.get("study_design", "?")
+        year   = ev.get("paper_year", "?")
+        sec    = ev.get("section_type", "?")
+        text   = ev.get("evidence_text", "").strip()
+        cite   = f"[P{pid}, {design}, {year}]"
+        lines.append(f"{indent}- {cite} [{sec}] {text}")
+    return lines
+
+
+def _format_direct_path(path: dict, label: str) -> list[str]:
+    claim     = path["claims"][0]
+    triple    = f"{claim['source_name']} -> {claim['relation_type']} -> {claim['target_name']}"
+    certainty = claim.get("certainty_max", "?")
+    papers    = claim.get("paper_count", "?")
+    lines = [
+        f"{label} {triple}",
+        f"     Certainty: {certainty} | Papers: {papers}",
+    ]
+    lines.extend(_format_evidence_lines(claim.get("evidence_list", []), indent="     "))
+    lines.append("")
+    return lines
+
+
+def _format_chain_path(path: dict, chain_label: str) -> list[str]:
+    c1, c2 = path["claims"]
+    bridge = path["entities"][1]
+    chain_text = (
+        f"{c1['source_name']} -> {c1['relation_type']} -> {bridge} "
+        f"-> {c2['relation_type']} -> {c2['target_name']}"
+    )
+    lines = [
+        f"{chain_label} CHAIN: {chain_text}",
+        f"     Bridge: {bridge}",
+    ]
+
+    for hop_idx, claim in enumerate(path["claims"], 1):
+        hop_label = f"{chain_label[:-1]}.{hop_idx}]"
         triple    = f"{claim['source_name']} -> {claim['relation_type']} -> {claim['target_name']}"
         certainty = claim.get("certainty_max", "?")
         papers    = claim.get("paper_count", "?")
-        lines.append(f"{label} {triple}")
-        lines.append(f"     Certainty: {certainty} | Papers: {papers}")
-        for ev in claim.get("evidence_list", []):
-            pid    = ev.get("paper_id", "?")
-            design = ev.get("study_design", "?")
-            year   = ev.get("paper_year", "?")
-            sec    = ev.get("section_type", "?")
-            text   = ev.get("evidence_text", "").strip()
-            cite   = f"[P{pid}, {design}, {year}]"
-            lines.append(f"     - {cite} [{sec}] {text}")
-        lines.append("")
-    return "\n".join(lines)
+        lines.append(f"     {hop_label} {triple}")
+        lines.append(f"          Certainty: {certainty} | Papers: {papers}")
+        lines.extend(_format_evidence_lines(claim.get("evidence_list", []), indent="          "))
+
+    lines.append("")
+    return lines
+
+
+def _format_graph_section(graph_results: list[dict]) -> str:
+    """Format paths into prompt sections. Direct (1-hop) and chains (2-hop) are split.
+    Citations: direct = [G1], chain hops = [G4.1], [G4.2] (chain itself referenced as G4).
+    """
+    direct_paths = [p for p in graph_results if p["length"] == 1]
+    chain_paths  = [p for p in graph_results if p["length"] >= 2]
+
+    sections: list[str] = []
+
+    if direct_paths:
+        lines = ["## KNOWLEDGE GRAPH EVIDENCE - DIRECT CLAIMS (1-hop)",
+                 "Single-relation claims extracted from 115 research papers.",
+                 ""]
+        for i, path in enumerate(direct_paths, 1):
+            lines.extend(_format_direct_path(path, label=f"[G{i}]"))
+        sections.append("\n".join(lines))
+
+    if chain_paths:
+        lines = ["## KNOWLEDGE GRAPH EVIDENCE - INDIRECT MECHANISMS (2-hop chains)",
+                 "Multi-hop relation chains showing how two entities are linked through a bridge entity.",
+                 "Cite each hop separately as [Gx.1] (first hop) and [Gx.2] (second hop).",
+                 ""]
+        offset = len(direct_paths)
+        for i, path in enumerate(chain_paths, 1):
+            lines.extend(_format_chain_path(path, chain_label=f"[G{offset + i}]"))
+        sections.append("\n".join(lines))
+
+    return "\n".join(sections)
 
 
 def _format_vector_section(vector_results: list[dict]) -> str:
