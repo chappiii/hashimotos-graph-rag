@@ -107,7 +107,7 @@ def process_pdfs():
         
         if part_number < total_batches:
             print("Waiting 5 seconds before next part...")
-            time.sleep(5)
+            time.sleep(SLEEP_DURATION)
     
     logger.save()
     print(f"\n Complete: All {total_files} PDFs processed in {total_batches} parts!")

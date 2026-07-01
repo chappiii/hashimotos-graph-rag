@@ -16,7 +16,7 @@ _MODULE_DIR = _CONFIG_DIR.parent
 _PROJECT_ROOT = _MODULE_DIR.parent
 
 OLLAMA_URL = "http://127.0.0.1:11434/api/generate"
-PDFS = _PROJECT_ROOT / "pdfs"
+PDFS = _PROJECT_ROOT / "data" / "pdfs"
 OUTPUT_FOLDER = _MODULE_DIR / "extracted_metadata"
 EXPERIMENT_OUTPUT = _MODULE_DIR / "experiments" / "results"
 
