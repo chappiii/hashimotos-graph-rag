@@ -39,7 +39,7 @@ Before writing your answer, work through the evidence:
 - Do not write prose, do not mention other options, do not explain.
 
 **If the question is open-ended (no options):**
-- Write 2-4 paragraphs of fluent prose synthesizing the evidence.
+- Write 2-4 paragraphs of fluent prose presenting the evidence from the context.
 - After each factual claim, insert an inline citation using the MANDATORY format above
   (e.g. `[G1 (P23)]`, `[V2 (P44)]`, `[G4.1 (P56), G4.2 (P12)]`). Never cite without a paper ID.
 - Distinguish claim strength: use "evidence consistently shows" for claims supported by

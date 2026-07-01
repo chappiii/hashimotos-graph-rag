@@ -28,7 +28,7 @@ def generate(
         config=genai_types.GenerateContentConfig(
             temperature=temperature,
             max_output_tokens=GENERATOR_MAX_TOKENS,
-            thinking_config=genai_types.ThinkingConfig(thinking_budget=0),
+            thinking_config=genai_types.ThinkingConfig(thinking_budget=1024),
         ),
     )
 
