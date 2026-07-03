@@ -9,6 +9,8 @@ load_dotenv()
 
 from retriever.config.ret_config import EMBEDDING_MODEL, EMBED_MAX_RETRIES, EMBED_RETRY_SLEEP
 
+_RETRY_MARKERS = ("429", "500", "502", "503", "504", "10060", "timeout", "timed out", "Connection")
+
 
 def embed(text: str, task_type: str = "RETRIEVAL_DOCUMENT") -> list[float]:
     client = genai.Client(api_key=os.getenv("GEMINI_API_KEY", ""))
@@ -23,7 +25,8 @@ def embed(text: str, task_type: str = "RETRIEVAL_DOCUMENT") -> list[float]:
             )
             return response.embeddings[0].values
         except Exception as e:
-            if "429" in str(e) and attempt < EMBED_MAX_RETRIES:
+            msg = str(e)
+            if any(m in msg for m in _RETRY_MARKERS) and attempt < EMBED_MAX_RETRIES:
                 time.sleep(EMBED_RETRY_SLEEP * attempt)
                 continue
             raise

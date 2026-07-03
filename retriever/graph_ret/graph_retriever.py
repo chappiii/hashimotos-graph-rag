@@ -37,6 +37,7 @@ RETURN
   c.certainty_max       AS certainty_max,
   c.paper_count         AS paper_count,
   c.study_weight_max    AS study_weight_max,
+  c.embedding           AS embedding,
 """ + _EVIDENCE_FRAGMENT
 
 _BY_GENERIC_CYPHER = """
@@ -55,6 +56,7 @@ RETURN
   c.certainty_max       AS certainty_max,
   c.paper_count         AS paper_count,
   c.study_weight_max    AS study_weight_max,
+  c.embedding           AS embedding,
 """ + _EVIDENCE_FRAGMENT
 
 
@@ -68,6 +70,7 @@ def _row_to_claim(row: dict) -> dict:
         "certainty_max":    row.get("certainty_max") or "low",
         "paper_count":      row.get("paper_count") or 0,
         "study_weight_max": row.get("study_weight_max") or 0.4,
+        "embedding":        row.get("embedding"),
         "evidence_list": [
             e for e in row["evidence_list"] if e.get("evidence_text")
         ],

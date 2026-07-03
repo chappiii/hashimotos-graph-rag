@@ -52,6 +52,7 @@ RETURN
   c1.certainty_max      AS c1_certainty,
   c1.paper_count        AS c1_papers,
   c1.study_weight_max   AS c1_study_weight,
+  c1.embedding          AS c1_embedding,
   c1_evidence,
   c2.claim_signature    AS c2_signature,
   c2.relation_type      AS c2_relation,
@@ -59,6 +60,7 @@ RETURN
   c2.certainty_max      AS c2_certainty,
   c2.paper_count        AS c2_papers,
   c2.study_weight_max   AS c2_study_weight,
+  c2.embedding          AS c2_embedding,
   c2_evidence
 """
 
@@ -73,6 +75,7 @@ def _row_to_claim(row: dict, prefix: str, source: str, target: str) -> dict:
         "certainty_max":    row.get(f"{prefix}_certainty") or "low",
         "paper_count":      row.get(f"{prefix}_papers") or 0,
         "study_weight_max": row.get(f"{prefix}_study_weight") or 0.4,
+        "embedding":        row.get(f"{prefix}_embedding"),
         "evidence_list": [
             e for e in row[f"{prefix}_evidence"] if e.get("evidence_text")
         ],
