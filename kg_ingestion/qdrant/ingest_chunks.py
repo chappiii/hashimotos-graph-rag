@@ -17,9 +17,9 @@ import sys
 from pathlib import Path
 
 from qdrant_client import QdrantClient
-from qdrant_client.models import PointStruct
+from qdrant_client.models import Distance, PointStruct, VectorParams
 
-from kg_ingestion.config.kg_config import QDRANT_URL, CHUNKS_DIR
+from kg_ingestion.config.kg_config import QDRANT_URL, CHUNKS_DIR, VECTOR_DIM
 from kg_ingestion.qdrant.embed import embed
 from extract_entity_relation.utils.file_utils import _should_skip, get_section_type
 
@@ -102,6 +102,17 @@ def collect_records(chunks_dir: Path) -> list[dict]:
     return records
 
 
+def ensure_collection(client: QdrantClient) -> None:
+    """Create the collection if it does not exist."""
+    if client.collection_exists(COLLECTION):
+        return
+    client.create_collection(
+        collection_name=COLLECTION,
+        vectors_config=VectorParams(size=VECTOR_DIM, distance=Distance.COSINE),
+    )
+    print(f"  created collection '{COLLECTION}' (dim={VECTOR_DIM}, cosine)")
+
+
 def existing_ids(client: QdrantClient, ids: list[int]) -> set[int]:
     found = client.retrieve(collection_name=COLLECTION, ids=ids, with_payload=False, with_vectors=False)
     return {p.id for p in found}
@@ -133,6 +144,7 @@ def main() -> None:
     print(f"Generated {len(records)} windows from {chunks_dir}")
 
     client = QdrantClient(url=QDRANT_URL)
+    ensure_collection(client)
     ingest(client, records)
     print("Done.")
 
