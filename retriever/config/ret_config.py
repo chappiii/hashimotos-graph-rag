@@ -18,7 +18,7 @@ NEO4J_URI      = "bolt://localhost:7687"
 NEO4J_DATABASE = "neo4j"
 
 # --- Shared top-k ---
-TOP_K = 7
+TOP_K = 8
 
 # --- Domain: entities that appear in almost every claim ---
 GENERIC_ENTITIES: set[str] = {
@@ -44,7 +44,14 @@ QUALITY_PRE_FILTER_N = 40
 TOP_N_FINAL          = TOP_K
 EVIDENCE_PER_CLAIM   = 2
 ENTITY_BUCKET_QUALITY = 5
-ENTITY_BUCKET_HYBRID  = 1
+
+# 4+4 split in the hybrid stage so 1-hop and 2-hop chains get equal final slots
+RESERVED_1HOP_SLOTS = 4
+RESERVED_2HOP_SLOTS = 4
+
+# Reserved 2-hop quota in the quality pre-filter, so 2-hop survives into hybrid stage
+# (multiplicative path-quality decay otherwise filters them out)
+RESERVED_2HOP_QUALITY = 10
 
 # --- multi-hop expansion ---
 MAX_PATH_HOPS = 2

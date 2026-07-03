@@ -36,7 +36,7 @@ def run_graph_ret(query: str, registry: dict) -> list[dict]:
     all_paths   = _merge_paths(direct_paths, chain_paths)
     specific    = [e for e in matched if e not in GENERIC_ENTITIES]
     quality_top = rank_by_quality(all_paths, specific_entities=specific)
-    return rank_by_hybrid(quality_top, query, specific_entities=specific)
+    return rank_by_hybrid(quality_top, query)
 
 
 def _chain_str(path: dict) -> str:
@@ -72,17 +72,6 @@ def print_vector_results(chunks: list[dict]) -> None:
         print(f"       {h['text'][:200]}")
 
 
-def _flatten_paths_to_claims(paths: list[dict]) -> list[dict]:
-    """Phase-1 generator compatibility: feed the generator individual claims.
-    Phase 2 will update the generator prompt to consume paths directly.
-    """
-    seen: dict[str, dict] = {}
-    for p in paths:
-        for c in p["claims"]:
-            seen.setdefault(c["claim_signature"], c)
-    return list(seen.values())
-
-
 def main() -> None:
     registry = load_registry()
 
@@ -101,8 +90,7 @@ def main() -> None:
 
     print("\n  GENERATOR")
     print(SEP2)
-    graph_claims = _flatten_paths_to_claims(graph_paths)
-    answer = generate(query, graph_claims, vector_results)
+    answer = generate(query, graph_paths, vector_results)
     print(answer)
     print(SEP)
 
