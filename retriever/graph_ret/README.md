@@ -50,9 +50,8 @@ Two Cypher queries run against Neo4j:
 target. Example: `Vitamin D → reduces → TSH`.
 
 **`_BY_GENERIC_CYPHER`** - fetches claims connecting a generic entity (Hashimoto's Thyroiditis,
-Thyroid Gland, Autoimmune Thyroid Disease) to a specific matched entity. Generic entities are
-separated because querying "anything connected to Hashimoto's" would return thousands of
-irrelevant claims - so generic entities only participate when paired with a specific one.
+Thyroid Gland, Autoimmune Thyroid Disease) to a specific matched entity. Generic entities only
+participate when paired with a specific matched entity.
 
 Each result includes: the triple (`source → relation → target`), certainty level, paper count,
 study design weight, and evidence sentences with paper metadata (year, study design, section).
@@ -75,9 +74,6 @@ A two-bucket strategy prevents popular entities from crowding out niche ones:
 1. **Entity bucket**: top 5 claims per specific matched entity are guaranteed in, regardless of score
 2. **Quality bucket**: remaining slots (up to 40 total) filled by global quality ranking
 
-Why this matters: if `Vitamin D` has 30 claims and `selenium` has 2, without the entity bucket
-`selenium` might get zero representation in the top 40.
-
 ---
 
 ## Stage 5 - Re-rank by semantic similarity (`ranker.rank_by_hybrid`)
@@ -91,9 +87,6 @@ claims is converted to a text string:
 
 ...and embedded with `RETRIEVAL_DOCUMENT` task type. Cosine similarity between query vector
 and each claim vector gives the final `_hybrid_score`.
-
-The name is hybrid because it was designed to later combine quality score + cosine similarity -
-currently it is cosine-only.
 
 The entity-bucket guarantee applies again at final selection: at least 1 claim per specific
 matched entity is in the final top 7.
