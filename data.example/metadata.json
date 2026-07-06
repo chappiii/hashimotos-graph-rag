@@ -1,0 +1,27 @@
+{
+  "papers": [
+    {
+      "paper_id": "1",
+      "doi": "https://doi.org/10.3390/life14111380",
+      "title": "A Real-Life Study in Patients Newly Diagnosed with Autoimmune Hashimoto's Thyroiditis: Analysis of Asthenia as Admission Complaint",
+      "published_year": 2024,
+      "author_list": [
+        "Ana Valea",
+        "Mihai Costachescu",
+        "Mihaela Stanciu"
+      ],
+      "countries": [
+        "Romania"
+      ],
+      "purpose_of_work": "To analyze the thyroid panel in newly diagnosed Hashimoto's thyroiditis patients to assess the relationship between asthenia and thyroid function parameters.",
+      "keywords": [
+        "antibody",
+        "autoimmune",
+        "asthenia",
+        "thyroid",
+        "thyroiditis"
+      ],
+      "study_design": "cohort"
+    }
+  ]
+}
