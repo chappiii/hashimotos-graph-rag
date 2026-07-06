@@ -64,7 +64,20 @@ DB-inspection/
 retrieval-old/
 
 # question set
-QA/
+qa_test
+
+DEPLOYMENT_DESIGN.md
+
+vanilla_llm
+vector_RAG
+
+# deepeval 
+deval/data/
+deval/data2/
+deval/ablation/
+deval/ab_results/
+deval/eval_results/
+deval/eval_results2/
 
 .deepeval
 
