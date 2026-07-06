@@ -14,7 +14,7 @@ _RETRY_SLEEP  = 10  # seconds on first 429
 
 
 def embed(text: str, task_type: str = "RETRIEVAL_DOCUMENT") -> list[float]:
-    """Return 768-d embedding vector for text. Retries up to 3× on 429."""
+    """Return 3072-d embedding vector for text. Retries up to 3× on 429."""
     client = genai.Client(api_key=GEMINI_API_KEY)
     config = genai_types.EmbedContentConfig(task_type=task_type)
 
