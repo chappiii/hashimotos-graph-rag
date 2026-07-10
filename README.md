@@ -1,9 +1,20 @@
 # Graph RAG - Hashimoto's Thyroiditis
 
+**Live demo: [ht-rag-web.vercel.app](https://ht-rag-web.vercel.app/)**
+&nbsp;·&nbsp;
+**Thesis: [*Knowledge Graph-Based GraphRAG for Clinical Question Answering in Hashimoto's Thyroiditis Built from Peer-Reviewed Literature*](https://bth.diva-portal.org/smash/record.jsf?pid=diva2%3A2084651)** (DIVA portal)
+
 A Graph RAG system built over 115 peer reviewed research papers on Hashimoto's thyroiditis. A
 question is answered by retrieving structured claims from a knowledge graph
 (Neo4j) alongside semantically similar text chunks (Qdrant), then generating a
 cited answer.
+
+This repository is the research and experimentation pipeline behind the thesis.
+The full thesis, including all results, evaluation, and methodology, is
+published on the [DIVA portal](https://bth.diva-portal.org/smash/record.jsf?pid=diva2%3A2084651).
+It takes the corpus from raw PDFs through to a cited question-answering flow. A
+separate web app ([ht-rag-web.vercel.app](https://ht-rag-web.vercel.app/))
+demos the query-time system in the browser.
 
 The full pipeline runs from raw PDFs to a live question-answering flow. Every
 stage is also usable on its own; the root [`main.py`](main.py) wires the
