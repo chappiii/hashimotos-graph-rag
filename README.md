@@ -1,6 +1,6 @@
 # Graph RAG - Hashimoto's Thyroiditis
 
-**[Live demo](https://ht-rag-web.vercel.app/)**
+**Live demo: [ht-rag-web.vercel.app](https://ht-rag-web.vercel.app/)**
 
 **Thesis: [*Knowledge Graph-Based GraphRAG for Clinical Question Answering in Hashimoto's Thyroiditis Built from Peer-Reviewed Literature*](https://bth.diva-portal.org/smash/record.jsf?pid=diva2%3A2084651)** (DIVA portal)
 
