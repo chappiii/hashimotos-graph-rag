@@ -123,6 +123,22 @@ NEO4J_DATABASE=neo4j
 
 ### 3. Provide the corpus
 
+> **Note on the corpus.** The 115 source papers are peer-reviewed articles held
+> under publisher copyright, so the PDFs are not redistributed here. Neither are
+> the section chunks or the entity/relation JSON derived from them, since those
+> reproduce the article text.
+>
+> The full corpus manifest does ship:
+> [`data.example/metadata.json`](data.example/metadata.json) lists all 115
+> papers with their `paper_id`, title, authors, year and study design, and 109
+> of the 115 carry a DOI (the remaining 6 are identified by title). Because
+> `paper_id` is the join key used by every downstream stage, the exact corpus,
+> including its numbering, can be reassembled from the publishers or PubMed.
+>
+> To reproduce the pipeline: supply the PDFs as `data/pdfs/{paper_id}.pdf`
+> following the manifest, then run the extraction stages once to rebuild the
+> derived data.
+
 The pipeline reads its inputs from `data/` (PDFs, metadata, section maps).
 [`data.example/`](data.example/README.md) shows the exact layout and file
 formats. Copy it and drop in the real corpus:
@@ -139,7 +155,16 @@ to the working directory).
 
 ### Build the graph
 
-Ingestion only (assumes the committed extraction outputs from stages 1-3):
+On a fresh clone, run the full pipeline once. This runs the upstream Gemini
+extraction stages (metadata, section chunking, entity/relation extraction) and
+then ingests their outputs. It is long and needs `GEMINI_API_KEY` and the PDFs
+in place:
+
+```bash
+uv run main.py build --with-extraction
+```
+
+Once the extraction outputs exist locally, ingestion alone is enough:
 
 ```bash
 uv run main.py build
@@ -147,14 +172,8 @@ uv run main.py build
 
 This runs, in order: entity + claim registries -> Neo4j (schema, papers,
 entities, claims, evidence) -> Qdrant (collections, papers, chunks, evidence).
-Each stage is idempotent, so re-running is safe.
-
-To also re-run the upstream Gemini extraction stages from scratch (long, needs
-`GEMINI_API_KEY`):
-
-```bash
-uv run main.py build --with-extraction
-```
+Each stage is idempotent, so re-running is safe. Ingestion reads only the
+extraction outputs, never the PDFs.
 
 ### Ask a question
 

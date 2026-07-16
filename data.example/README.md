@@ -1,7 +1,13 @@
 # data.example/
 
-A template showing the layout the pipeline expects under `data/`. Copy this to
-`data/` and populate it with the real corpus before running the build.
+The layout the pipeline expects under `data/`. Copy this to `data/`, then add
+the PDFs before running the build.
+
+`metadata.json` and `pdf-info.json` here are the real manifests for the full
+115-paper corpus, not samples. The PDFs themselves are under publisher
+copyright and are not redistributed, so `pdfs/` ships empty and
+`paper-sections/` ships a single example. See the note on the corpus in the
+[root README](../README.md#3-provide-the-corpus).
 
 ```
 data/
@@ -26,15 +32,19 @@ numbering must stay consistent across `pdfs/`, `metadata.json`, and
 
 ## metadata.json
 
-A single object `{ "papers": [ ... ] }`. Each entry carries the fields the graph
-build consumes (title, authors, year, `study_design`, keywords). See
-[`metadata.json`](metadata.json) for one trimmed sample paper.
+A single object `{ "papers": [ ... ] }`, one entry per paper for all 115.
+Each entry carries the fields the graph build consumes (`paper_id`, `doi`,
+title, authors, year, `study_design`, keywords).
+
+This doubles as the corpus manifest: 109 of the 115 entries carry a DOI, and
+the 6 that do not are identified by title. Use it to source the PDFs and name
+them by `paper_id`.
 
 ## pdf-info.json
 
 Same shape as `metadata.json` plus structural fields: `pages`, `keyword-page`,
-`sections`, `tables`, `figures`. Used mainly by the EDA notebooks. See
-[`pdf-info.json`](pdf-info.json).
+`sections`, `tables`, `figures`. Used mainly by the EDA notebooks. Also covers
+all 115 papers. See [`pdf-info.json`](pdf-info.json).
 
 ## paper-sections/
 
