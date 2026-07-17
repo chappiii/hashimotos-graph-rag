@@ -1,0 +1,338 @@
+[
+  {
+    "question": "A 51-year-old woman with Sjogren’s syndrome presents to her physician for suddenly developed palpitations. She feels more anxious than usual and has had difficulty sleeping well for the past 2 weeks. She has lost 2 kg (4.4 lb) since her last routine appointment 6 months ago. She also has had diarrhea and often feels like her heart is beating very quickly. On physical examination, her skin appears warm and moist. Her reflexes are hyperactive. Her thyroid is moderately enlarged and is non-tender. She has mild dry eyes and dry mouth. Her blood pressure is 136/88 mm Hg, pulse is 76/min, respirations are 17/min and temperature is 36.7°C (98.1°F). Which of the following pathologic findings is this patient likely to have?",
+    "options": {
+      "A": "Silent thyroiditis",
+      "B": "Chronic lymphocytic thyroiditis",
+      "C": "Granulomatous thyroiditis",
+      "D": "Fibrous thyroiditis"
+    },
+    "answer": "Chronic lymphocytic thyroiditis",
+    "answer_idx": "B",
+    "meta_info": "step2&3"
+  },
+  {
+    "question": "A 35-year-old G0P0000 presents to her gynecologist with complaints of irregular menstruation. She has had only two periods in the last year. She also endorses feeling flushed without provocation and experiencing occasional dyspareunia with post-coital spotting. In addition, she has also had more frequent headaches than usual. The patient has a past medical history of Hashimoto’s thyroiditis and takes levothyroxine daily. Her mother has type I diabetes mellitus. At this visit, the patient’s temperature is 98.5°F (36.9°C), pulse is 70/min, blood pressure is 118/76 mmHg, and respirations are 13/min. Cardiopulmonary and abdominal exams are unremarkable. The patient has Tanner V breasts and pubic hair. Pelvic exam reveals a normal cervix, anteverted uterus without tenderness, and no adnexal masses. The following laboratory studies are performed:\n\nSerum:\nThyroid stimulating hormone (TSH): 28 µIU/mL (9-30 µIU/mL)\nCycle day 3 follicle stimulating hormone (FSH): 49 mIU/mL (4.7-21.5 mIU/mL)\nCycle day 3 estradiol: 8 pg/mL (27-123 pg/mL)\nProlactin: 14 ng/mL (4-23 ng/mL)\nTestosterone: 42 ng/dL (15-70 ng/dL)\n\nWhich of the following is the best next step in management?",
+    "options": {
+      "A": "Vaginal estradiol gel",
+      "B": "Increase levothyroxine dose",
+      "C": "Estradiol patch with oral medroxyprogesterone",
+      "D": "Combined oral contraceptive"
+    },
+    "answer": "Estradiol patch with oral medroxyprogesterone",
+    "answer_idx": "C",
+    "meta_info": "step2&3"
+  },
+  {
+    "question": "A 25-year-old man comes to the physician for a 2-month history of abdominal discomfort, fatigue, and increased urinary frequency, especially at night. He has also noticed that despite eating more often he has lost 14-lbs (6-kg). He has a congenital solitary kidney and a history of Hashimoto thyroiditis, for which he takes levothyroxine. He has smoked two packs of cigarettes daily for 10 years. BMI is 18 kg/m2. His temperature is 36.7°C (98.1°F), pulse is 80/min, and blood pressure is 110/60 mm Hg. Physical examination is unremarkable. Serum studies show an osmolality of 305 mOsm/L and bicarbonate of 17 mEq/L. Urinalysis shows clear-colored urine with no organisms. Which of the following is most likely to be helpful in establishing the diagnosis?",
+    "options": {
+      "A": "Ultrasonography of the thyroid gland",
+      "B": "Serum glucose",
+      "C": "Water deprivation test",
+      "D": "Serum creatinine"
+    },
+    "answer": "Serum glucose",
+    "answer_idx": "B",
+    "meta_info": "step1"
+  },
+  {
+    "question": "A 59-year-old woman comes to the physician because of a 1-year history of nausea and chronic abdominal pain that is worse after eating. She has Hashimoto thyroiditis. She does not smoke or drink alcohol. A biopsy specimen of the corpus of the stomach shows destruction of the upper glandular layer of the gastric mucosa and G-cell hyperplasia. This patient is at greatest risk for which of the following conditions?",
+    "options": {
+      "A": "Gastric adenocarcinoma",
+      "B": "Curling ulcer",
+      "C": "Aplastic anemia",
+      "D": "Gastric MALT lymphoma"
+    },
+    "answer": "Gastric adenocarcinoma",
+    "answer_idx": "A",
+    "meta_info": "step1"
+  },
+  {
+    "question": "A 26-year-old nursing home staff presents to the emergency room with complaints of palpitations and chest pain for the past 2 days. She was working at the nursing home for the last year but has been trying to get into modeling for the last 6 months and trying hard to lose weight. She is a non-smoker and occasionally drinks alcohol on weekends with friends. On examination, she appears well nourished and is in no distress. The blood pressure is 150/84 mm Hg and the pulse is 118/min. An ECG shows absent P waves. All other physical findings are normal. What is the probable diagnosis?",
+    "options": {
+      "A": "Factitious thyrotoxicosis",
+      "B": "Anorexia nervosa",
+      "C": "Hashimoto thyroiditis",
+      "D": "Toxic nodular goiter"
+    },
+    "answer": "Factitious thyrotoxicosis",
+    "answer_idx": "A",
+    "meta_info": "step1"
+  },
+  {
+    "question": "A 43-year-old woman presents to the physician with the complaint of worsening fatigue over the past several months. She has found that she requires nearly double the amount of coffee consumption each day to stay awake at work and that despite maintaining a balanced, healthy diet, she has experienced significant weight gain. A blood test confirms the presence of anti-thyroid peroxidase antibodies. Which of the following additional findings would be consistent with her condition?",
+    "options": {
+      "A": "Brisk deep tendon reflexes",
+      "B": "Diarrhea",
+      "C": "Galactorrhea",
+      "D": "Proptosis of the globe"
+    },
+    "answer": "Galactorrhea",
+    "answer_idx": "C",
+    "meta_info": "step2&3"
+  },
+  {
+    "question": "A 46-year-old woman presents to her primary care provider for itching. She reports that she has always had dry skin but that the itching has gotten significantly worse over the last few years. The patient also endorses fatigue and dull abdominal pain. Her past medical history includes Hashimoto’s thyroiditis, mitral valve prolapse, and osteoarthritis. She takes levothyroxine and ibuprofen for pain in her knees. The patient drinks 2-3 beers per week. She has a 10 pack-year smoking history but quit 15 years ago. She denies any family history of cancer. On physical exam, her sclera are anicteric. Her abdomen is soft and tender to palpation in the right upper quadrant. Her bowel sounds are normal and hepatomegaly is present. A right upper quadrant ultrasound shows no evidence of extrahepatic biliary dilation. Laboratory studies are performed which reveal the following:\n\nAspartate aminotransferase (AST): 76 U/L\nAlanine aminotransferase (ALT): 57 U/L\nAlkaline phosphatase: 574 U/L\nTotal bilirubin: 1.6 mg/dL\n\nThis patient is most likely to have which of the following additional findings?",
+    "options": {
+      "A": "Hyperlipidemia",
+      "B": "Skin hyperpigmentation",
+      "C": "Anti-neutrophil cytoplasmic antibodies",
+      "D": "Personality changes"
+    },
+    "answer": "Hyperlipidemia",
+    "answer_idx": "A",
+    "meta_info": "step2&3"
+  },
+  {
+    "question": "A previously healthy 39-year-old woman comes to the physician because of a slowly enlarging, painless neck mass that she first noticed 3 months ago. During this period, she has also experienced intermittent palpitations, hair loss, and a weight loss of 4.5 kg (10 lb). There is no personal or family history of serious illness. She appears anxious and fidgety. Her temperature is 37.1°C (98.8°F), pulse is 101/min and irregular, respirations are 16/min, and blood pressure is 140/90 mm Hg. Physical examination shows a firm, nontender left anterior cervical nodule that moves with swallowing. Laboratory studies show:\nTSH 0.4 μU/mL\nT4 13.2 μg/dL\nT3 196 ng/dL\nUltrasonography confirms the presence of a 3-cm solid left thyroid nodule. A thyroid 123I radionuclide scintigraphy scan shows increased uptake in a nodule in the left lobe of the thyroid gland with suppression of the remainder of the thyroid tissue. Which of the following is the most likely underlying mechanism of this patient's condition?\"",
+    "options": {
+      "A": "Thyroid peroxidase autoantibody-mediated destruction of thyroid tissue",
+      "B": "Gain-of-function mutations of the TSH receptor",
+      "C": "Thyroglobulin antibody production",
+      "D": "Activation of oncogenes promoting cell division"
+    },
+    "answer": "Gain-of-function mutations of the TSH receptor",
+    "answer_idx": "B",
+    "meta_info": "step2&3"
+  },
+  {
+    "question": "A 48-year-old woman comes to the physician because of a 6-month history of excessive fatigue and a 1-month history of progressively increasing generalized pruritus. She has hypothyroidism, for which she receives thyroid replacement therapy. Physical examination shows jaundice. The liver is palpated 4 cm below the right costal margin. Serum studies show a direct bilirubin concentration of 2.9 mg/dL, alkaline phosphatase activity of 580 U/L, and increased titers of antimitochondrial antibodies and anti-thyroid peroxidase antibodies. Which of the following is the most likely cause of this patient's condition?",
+    "options": {
+      "A": "Idiopathic hepatocellular accumulation of fat",
+      "B": "Neoplasia of the ampulla of Vater",
+      "C": "Destruction of intrahepatic bile ducts",
+      "D": "Inflammation and fibrosis of the biliary tree"
+    },
+    "answer": "Destruction of intrahepatic bile ducts",
+    "answer_idx": "C",
+    "meta_info": "step1"
+  },
+  {
+    "question": "A 44-year-old woman comes to the physician for the evaluation of a 1-month history of fatigue and difficulty swallowing. During this period, she has also had dry skin, thinning hair, and rounding of her face. She has type 1 diabetes mellitus and rheumatoid arthritis. Her father had a thyroidectomy for papillary thyroid cancer. The patient had smoked one pack of cigarettes daily for 20 years but quit 3 years ago. She drinks 2–3 glasses of wine daily. Her current medications include insulin, omeprazole, and daily ibuprofen. She appears well. Her temperature is 36.3°C (97.3°F), pulse is 62/min, and blood pressure is 102/76 mm Hg. Examination of the neck shows a painless, diffusely enlarged thyroid gland. Cardiopulmonary examination shows no abnormalities. Further evaluation is most likely to show which of the following?",
+    "options": {
+      "A": "Increased uptake on radioactive iodine scan in discrete 1-cm area",
+      "B": "Diffusely increased uptake on a radioactive iodine scan",
+      "C": "Positive immunohistochemical stain for calcitonin on thyroid biopsy",
+      "D": "Positive thyroid peroxidase antibodies and thyroglobulin antibodies in serum"
+    },
+    "answer": "Positive thyroid peroxidase antibodies and thyroglobulin antibodies in serum",
+    "answer_idx": "D",
+    "meta_info": "step2&3"
+  },
+  {
+    "question": "A 27-year-old woman, gravida 1, para 1, presents to the obstetrics and gynecology clinic because of galactorrhea, fatigue, cold intolerance, hair loss, and unintentional weight gain for the past year. She had placenta accreta during her first pregnancy with an estimated blood loss of 2,000 mL. Her past medical history is otherwise unremarkable. Her vital signs are all within normal limits. Which of the following is the most likely cause of her symptoms?",
+    "options": {
+      "A": "Addison’s disease",
+      "B": "Cushing syndrome",
+      "C": "Hashimoto thyroiditis",
+      "D": "Sheehan’s syndrome"
+    },
+    "answer": "Sheehan’s syndrome",
+    "answer_idx": "D",
+    "meta_info": "step2&3"
+  },
+  {
+    "question": "Immediately after undergoing a right total knee replacement, a 69-year-old woman has severe abdominal pain, non-bloody emesis, and confusion. She has a history of Hashimoto thyroiditis that is well-controlled with levothyroxine and hyperlipidemia that is controlled by diet. She underwent bunion removal surgery from her right foot 10 years ago. Her temperature is 39°C (102.2°F), pulse is 120/min, and blood pressure is 60/30 mm Hg. Abdominal examination shows a diffusely tender abdomen with normal bowel sounds. She is confused and oriented to person but not place or time. Laboratory studies are pending. Which of the following is the most appropriate next step in the management of this patient?",
+    "options": {
+      "A": "High-dose hydrocortisone",
+      "B": "Noncontrast CT of the head",
+      "C": "Intravenous hypotonic saline infusion",
+      "D": "CT angiogram of the abdomen"
+    },
+    "answer": "High-dose hydrocortisone",
+    "answer_idx": "A",
+    "meta_info": "step2&3"
+  },
+  {
+    "question": "A 50-year-old woman comes to the physician for the evaluation of fatigue over the past 6 months. During this period, the patient has also had a 5 kg (11-lb) weight loss. She has a history of Hashimoto thyroiditis. She is sexually active with her husband only. She does not smoke. She drinks one glass of wine per day. She does not use illicit drugs. Her only medication is levothyroxine. Temperature is 37°C (98.6°F), pulse is 70/min, and blood pressure is 110/70 mm Hg. Abdominal examination shows tenderness in the right upper quadrant with no rebound or guarding. Laboratory studies show a serum alanine aminotransferase level of 190 U/L, serum aspartate aminotransferase level of 250 U/L, and serum total bilirubin level of 0.6 mg/dL. Liver biopsy shows plasma cell infiltration and areas of periportal piecemeal necrosis. Further evaluation of this patient is most likely to show which of the following findings?",
+    "options": {
+      "A": "Positive anti-smooth muscle antibodies",
+      "B": "Positive anti-mitochondrial antibodies",
+      "C": "Positive HBV surface antigen",
+      "D": "Elevated serum transferrin saturation"
+    },
+    "answer": "Positive anti-smooth muscle antibodies",
+    "answer_idx": "A",
+    "meta_info": "step2&3"
+  },
+  {
+    "question": "A 38-year-old man presents to his physician for difficulty swallowing for 2 months. He describes food getting stuck down his windpipe and has been feeling very anxious around meal time because he is thinking that he may have esophageal cancer. He has had an influenza-like infection that lasted about 6 weeks in the past 3 months which exacerbated his asthma attacks. He used his puffers to relieve his symptoms and did not seek medical treatment. He is otherwise healthy. On examination, his blood pressure is 118/75 mm Hg, respirations are 17/min, pulse is 78/min, and temperature is 36.7°C (98.1°F). There is no evidence of enlarged lymph nodes or a sore throat. On palpation, the thyroid gland is enlarged and tender. He is a non-smoker with a BMI of 25 kg/m2. He has not used any medications recently. Which of the following is the most likely diagnosis?",
+    "options": {
+      "A": "Lymphoma",
+      "B": "Chronic lymphocytic thyroiditis",
+      "C": "Subacute granulomatous thyroiditis",
+      "D": "Fibrous thyroiditis"
+    },
+    "answer": "Subacute granulomatous thyroiditis",
+    "answer_idx": "C",
+    "meta_info": "step2&3"
+  },
+  {
+    "question": "A 78-year-old woman is brought to the physician by her son because of progressive memory loss for the past year. She feels tired and can no longer concentrate on her morning crossword puzzles. She has gained 11.3 kg (25 lb) in the last year. Her father died from complications of Alzheimer disease. She has a history of drinking alcohol excessively but has not consumed alcohol for the past 10 years. Vital signs are within normal limits. She is oriented but has short-term memory deficits. Examination shows a normal gait and delayed relaxation of the achilles reflex bilaterally. Her skin is dry and she has brittle nails. Which of the following is the most likely underlying etiology of this woman’s memory loss?",
+    "options": {
+      "A": "Thiamine deficiency",
+      "B": "Autoimmune thyroid disease",
+      "C": "Normal pressure hydrocephalus",
+      "D": "Alzheimer disease"
+    },
+    "answer": "Autoimmune thyroid disease",
+    "answer_idx": "B",
+    "meta_info": "step1"
+  },
+  {
+    "question": "A previously healthy 25-year-old woman comes to the physician because of a 1-month history of palpitations that occur on minimal exertion and sometimes at rest. She has no chest discomfort or shortness of breath. She feels nervous and irritable most of the time and attributes these feelings to her boyfriend leaving her 2 months ago. Since then she has started exercising more frequently and taking an herbal weight-loss pill, since which she has lost 6.8 kg (15 lb) of weight. She finds it hard to fall asleep and awakens 1 hour before the alarm goes off each morning. She has been drinking 2 to 3 cups of coffee daily for the past 7 years and has smoked one pack of cigarettes daily for the past 3 years. Her temperature is 37.4°C (99.4°F), pulse is 110/min, respirations are 18/min, and blood pressure is 150/70 mm Hg. Examination shows moist palms. Neurologic examination shows a fine resting tremor of the hands. Deep tendon reflexes are 3+ with a shortened relaxation phase. Which of the following is the most likely cause of this patient's symptoms?",
+    "options": {
+      "A": "Coffee consumption",
+      "B": "Hashimoto thyroiditis",
+      "C": "Exogenous hyperthyroidism",
+      "D": "Generalized anxiety disorder\n\""
+    },
+    "answer": "Exogenous hyperthyroidism",
+    "answer_idx": "C",
+    "meta_info": "step2&3"
+  },
+  {
+    "question": "A 30-year-old woman presents to her primary care physician for evaluation of irregular and heavy periods. She also complains of recent fatigue, joint pain, and constipation. Physical exam is notable for thinning eyebrows and recent weight gain. Her temperature is 98.0°F (36.7°C), blood pressure is 140/90 mmHg, 51/min, and respirations are 19/min.\n\nLaboratory studies reveal the following:\n\nSerum:\nNa+: 141 mEq/L\nK+: 4.3 mEq/L\nCl-: 102 mEq/L\nBUN: 15 mg/dL\nGlucose: 115 mg/dL\nCreatinine: 1.0 mg/dL\nThyroid-stimulating hormone: 11.2 µU/mL\nTotal T4: 2 ug/dL\nThyroglobulin antibodies: Positive\nAnti-thyroid peroxidase antibodies: Positive\n\nWhich of the following is this patient at increased risk of in the future?",
+    "options": {
+      "A": "Papillary carcinoma",
+      "B": "Parathyroid adenoma",
+      "C": "Subacute thyroiditis",
+      "D": "Thyroid lymphoma"
+    },
+    "answer": "Thyroid lymphoma",
+    "answer_idx": "D",
+    "meta_info": "step2&3"
+  },
+  {
+    "question": "A 23-year-old man comes to the physician because of lightening of his skin on both hands, under his eyes, and on his neck for 2 years. During this period the lesions slowly grew in size. There is no itchiness or pain. He regularly visits his family in India. Vital signs are within normal limits. Examination shows sharply demarcated, depigmented skin patches on the dorsum of both hands, in the periocular region, and on the neck. Sensation of the skin is intact. The lesions fluorescence blue-white under Wood's lamp. Which of the following findings is most likely to be associated with this patient's diagnosis?",
+    "options": {
+      "A": "“Spaghetti and meatballs” appearance on KOH scraping",
+      "B": "Decreased pigment with normal melanocyte count",
+      "C": "Elevated anti-TPO antibody levels",
+      "D": "Renal angiomyolipoma on abdominal MRI"
+    },
+    "answer": "Elevated anti-TPO antibody levels",
+    "answer_idx": "C",
+    "meta_info": "step2&3"
+  },
+  {
+    "question": "A 26-year-old African-American woman presents to the clinic for a routine check-up. Review of systems reveals that she often feels nervous and has recently developed a slight tremor. Of note, she has lost 15 pounds in the past 3 months, despite an increased appetite. The patient’s temperature is 99°F (37.2°C), blood pressure is 130/78 mmHg, pulse is 85/min, and respirations are 14/min with an oxygen saturation of 98% on room air. On physical exam, her skin is warm and she has mild exophthalmos. Which of the following is the direct mechanism causing the patient's ophthalmologic findings?",
+    "options": {
+      "A": "Anti-thyroid peroxidase antibodies",
+      "B": "Anti-thyroglobulin antibodies",
+      "C": "Lymphocytic infiltration",
+      "D": "Anti-myelin antibodies"
+    },
+    "answer": "Lymphocytic infiltration",
+    "answer_idx": "C",
+    "meta_info": "step1"
+  },
+  {
+    "question": "A 25-year-old woman presents to her physician with a missed mense and occasional morning nausea. Her menstrual cycles have previously been normal and on time. She has hypothyroidism resulting from Hashimoto thyroiditis diagnosed 2 years ago. She receives levothyroxine (50 mcg daily) and is euthyroid. She does not take any other medications, including birth control pills. At the time of presentation, her vital signs are as follows: blood pressure 120/80 mm Hg, heart rate 68/min, respiratory rate 12/min, and temperature 36.5℃ (97.7℉). The physical examination shows slight breast engorgement and nipple hyperpigmentation. The gynecologic examination reveals cervical softening and increased mobility. The uterus is enlarged. There are no adnexal masses. The thyroid panel is as follows:\nThyroid stimulating hormone (TSH) 3.41 mU/L\nTotal T4 111 nmol/L\nFree T4 20 pmol/L\nWhich of the following adjustments should be made to the patient’s therapy?",
+    "options": {
+      "A": "Decrease levothyroxine dosage by 30% ",
+      "B": "Discontinue levothyroxine",
+      "C": "Increase levothyroxine dosage by 20%–30%",
+      "D": "Increase levothyroxine dosage by 5% each week up, to 50%"
+    },
+    "answer": "Increase levothyroxine dosage by 20%–30%",
+    "answer_idx": "C",
+    "meta_info": "step2&3"
+  },
+  {
+    "question": "A 72-year-old woman presents to her primary care provider complaining of fatigue for the last 6 months. She can barely complete her morning chores before having to take a long break in her chair. She rarely climbs the stairs to the second floor of her house anymore because it is too tiring. Past medical history is significant for Hashimoto's thyroiditis, hypertension, and hyperlipidemia. She takes levothyroxine, chlorthalidone, and atorvastatin. Her daughter developed systemic lupus erythematosus. She is retired and lives by herself in an old house build in 1945 and does not smoke and only occasionally drinks alcohol. She eats a well-balanced diet with oatmeal in the morning and some protein such as a hardboiled egg in the afternoon and at dinner. Today, her blood pressure is 135/92 mm Hg, heart rate is 110/min, respiratory rate is 22/min, and temperature is 37.0°C (98.6°F). On physical exam, she appears frail and her conjunctiva are pale. Her heart is tachycardic with a regular rhythm and her lungs are clear to auscultation bilaterally. A complete blood count (CBC) shows that she has macrocytic anemia. Peripheral blood smear shows a decreased red blood cell count, anisocytosis, and poikilocytosis with occasional hypersegmented neutrophils. An endoscopy and colonoscopy are performed to rule out an occult GI bleed. Her colonoscopy was normal. Endoscopy shows thin and smooth gastric mucosa without rugae. Which of the following is the most likely cause of this patient’s condition?",
+    "options": {
+      "A": "Lead poisoning",
+      "B": "Pernicious anemia",
+      "C": "Anemia due to chronic alcoholism",
+      "D": "Helicobacter pylori gastritis"
+    },
+    "answer": "Pernicious anemia",
+    "answer_idx": "B",
+    "meta_info": "step1"
+  },
+  {
+    "question": "A 60-year-old woman presents to the emergency department with her husband. He is concerned that she has had abnormal behavior and involuntary movements of her body for the last 3 weeks. She now has difficulty remembering names, dates, and events. She even fails to recognize pictures of her children. She was in her normal state of health 3 weeks ago. There is no history of fever, headache, head trauma, drug abuse, or change in medications. Past medical history is significant for type 2 diabetes mellitus. She takes metformin and a multivitamin. Family history is negative for psychiatric illness. Her blood pressure is 134/87 mm Hg, the heart rate is 70/min, and the temperature is 37.1°C (98.8°F). The exam is occasionally disrupted by sudden episodic jerking of her limbs. She is drowsy but arousable to voice, and is disoriented and confused. Extraocular movements are normal. Cranial nerves are intact. There is no neck stiffness. Her laboratory results are significant for:\nHemoglobin 14.3 g/dL\nWhite blood cells 6,900/mm3\nPlatelets 347,000/mm3\nCreatinine 1.0 mg/dL\nSodium 146 mmol/L\nPotassium 4.1 mEq/L\nCalcium 9.1 mg/dL\nGlucose (random) 132 mg/dL\nTSH 2.5 mU/L\nShe is admitted to the neurology service. A head MRI, lumbar puncture, and EEG are performed. The MRI is nondiagnostic. Electroencephalography (EEG) reveals periodic spike and slow waves at an interval of 1 second. Cerebrospinal fluid is positive for protein 14-3-3. What is the most likely diagnosis?",
+    "options": {
+      "A": "Acute disseminated encephalomyelitis",
+      "B": "Creutzfeldt-Jakob disease",
+      "C": "Hashimoto thyroiditis",
+      "D": "Herpes viral encephalitis"
+    },
+    "answer": "Creutzfeldt-Jakob disease",
+    "answer_idx": "B",
+    "meta_info": "step2&3"
+  },
+  {
+    "question": "A 57-year-old female presents to her primary care physician with a chief complaint of feeling tired all the time. She states her symptoms began several months ago, around the time that her husband committed suicide. Since then she has had thoughts of joining her husband. She complains of feeling excessively weak and states that she no longer has enough energy to go to the gym which she attributes to her 15 pound weight gain over the last month. The patient's medical history includes joint pain, a skin rash that recently resolved, obstructive sleep apnea, and metabolic syndrome. The patient takes ibuprofen and omeprazole as needed but otherwise cannot remember any other medications that she takes. On physical exam you note an overweight woman who has an overall depressed affect. The patient's cardiac exam reveals a normal rate and rhythm. The pulmonary exam reveals bilateral clear lung fields with good air movement. The patient's skin is very dry and tight appearing and her hair is coarse. Overall the patient appears somewhat unkempt.\n\nLaboratory work is performed and reveals the following:\n\nHemoglobin: 13.0 g/dL\nHematocrit: 37%\nLeukocyte count: 4,500 cells/mm^3 with normal differential\nPlatelets: 250,000/mm^3\n\nSerum:\nNa+: 140 mEq/L\nK+: 4.4 mEq/L\nCl-: 102 mEq/L\nBUN: 15 mg/dL\nGlucose: 122 mg/dL\nCreatinine: 1.0 mg/dL\nThyroid-stimulating hormone: 5.3 µU/mL\nCa2+: 10.2 mg/dL\nAST: 11 U/L\nALT: 13 U/L\n\nWhich of the following laboratory findings is most likely to be abnormal in this patient?",
+    "options": {
+      "A": "Anti-DNA topoisomerase antibodies",
+      "B": "Anti-nuclear antibodies",
+      "C": "Anti-histidyl-tRNA synthetase antibodies",
+      "D": "Anti-thyroid peroxidase antibodies"
+    },
+    "answer": "Anti-thyroid peroxidase antibodies",
+    "answer_idx": "D",
+    "meta_info": "step2&3"
+  },
+  {
+    "question": "A 65-year-old woman presents to the clinic for a routine checkup. She has unintentionally lost 4.5 kg (9.9 lb) in the past month but denies any other complaints. Her pulse rate is 90/min, respiratory rate is 18/min, temperature is 37.0°C (98.6°F), and blood pressure is 150/70 mm Hg. An irregularly irregular rhythm is heard on auscultation of the heart. Neck examination shows a markedly enlarged thyroid with no lymphadenopathy or bruit. Laboratory tests show low serum thyroid-stimulating hormone level, high T4 level, absent thyroid-stimulating immunoglobulin, and absent anti-thyroid peroxidase antibody. Nuclear scintigraphy shows patchy uptake with multiple hot and cold areas. Which of the following is the most likely diagnosis?",
+    "options": {
+      "A": "Graves’ disease",
+      "B": "Hashimoto’s thyroiditis",
+      "C": "Subacute granulomatous thyroiditis",
+      "D": "Toxic multinodular goiter"
+    },
+    "answer": "Toxic multinodular goiter",
+    "answer_idx": "D",
+    "meta_info": "step1"
+  },
+  {
+    "question": "A 63-year-old female complains of weakness, light-headedness, palpitations, and soreness of the tongue. She has a past medical history of Hashimoto’s thyroiditis. Her hematocrit is 29%. On peripheral blood smear, you notice neutrophils with 7 lobes and large oval-shaped red blood cells. On physical exam, you notice the patient has decreased position sense and a loss in vibratory sensation in her lower extremities. Which of the following is most likely present in this patient?",
+    "options": {
+      "A": "Atrophy of G cells",
+      "B": "Anti-intrinsic factor antibodies",
+      "C": "Decreased methylmalonic acid levels",
+      "D": "Antithrombotic state"
+    },
+    "answer": "Anti-intrinsic factor antibodies",
+    "answer_idx": "B",
+    "meta_info": "step2&3"
+  },
+  {
+    "question": "A 35-year-old woman presents to the office because she has felt a small painless mass in her neck which has been slowly growing. She has no relevant past medical history. Her vital signs are within normal limits. On physical exam of the thyroid gland, a solitary nodule is palpated. It is fixed to the surrounding tissues and nontender. TSH is normal, and antithyroid antibodies are negative. Which of the following is the most likely cause of this patient’s symptoms?",
+    "options": {
+      "A": "Endemic goiter",
+      "B": "Follicular carcinoma",
+      "C": "Hashimoto thyroiditis",
+      "D": "Papillary carcinoma"
+    },
+    "answer": "Papillary carcinoma",
+    "answer_idx": "D",
+    "meta_info": "step1"
+  },
+  {
+    "question": "A 26-year-old nullipara presents to her physician for a routine check-up at 18 weeks gestation. She has no co-morbidities. Her only complaints are fatigability and a depressed mood for the past 2 weeks. Her vital signs are as follows: blood pressure, 125/80 mm Hg; heart rate, 87/min; respiratory rate, 14/min; and temperature, 36.7℃ (98℉). The physical examination is unremarkable and the gynecologic examination is consistent with 18 weeks gestation. A thyroid profile s ordered to check for a possible cause of the fatigability and decreased mood:\nThyroid stimulating hormone (TSH) 0.3 mU/L\nTotal T4 160 nmol/L\nFree T4 13 pmol/L\nCorresponding to the obtained results, how should the patient be managed?",
+    "options": {
+      "A": "Prescribe levothyroxine 50 mcg daily",
+      "B": "No specific management required",
+      "C": "Recommend additional anti-TPO test",
+      "D": "Recommend additional T3 assessment"
+    },
+    "answer": "No specific management required",
+    "answer_idx": "B",
+    "meta_info": "step2&3"
+  },
+  {
+    "question": "A 40-year-old woman presents to her family physician with a 3-week history of swollen neck. The small, round, and painless swelling, which was detected 3 weeks ago in the middle of her neck, has now increased in size. The swelling is associated with sweaty palms and soles, insomnia, irritability, nervousness, and fatigue; however, the patient does not complain of fever, cervical lymphadenopathy, weight loss, vision problems, or body swelling. The patient’s medical history is negative for similar symptoms or a thyroid disorder. The vital signs are within normal limits. Local examination reveals a 3 x 3 cm round, non-tender, non-fluctuant, and non-pulsatile swelling in the anterior triangle of her neck. The patient carries a total white blood cell count of 10,200/mm3, including 70% neutrophils, 30% lymphocytes, and zero eosinophils.The erythrocyte sedimentation rate is 20 mm/hr (normal, 0–29 mm/hr). What is the most likely diagnosis?",
+    "options": {
+      "A": "Graves' disease",
+      "B": "De Quervain’s thyroiditis",
+      "C": "Silent thyroiditis",
+      "D": "Hashimoto’s thyroiditis"
+    },
+    "answer": "Silent thyroiditis",
+    "answer_idx": "C",
+    "meta_info": "step1"
+  }
+]
